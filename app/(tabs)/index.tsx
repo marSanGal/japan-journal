@@ -17,6 +17,8 @@ import EntryCard from '../../components/EntryCard';
 import FAB from '../../components/FAB';
 import AddEntrySheet from '../../components/AddEntrySheet';
 import SyncPanel from '../../components/SyncPanel';
+import { fetchWeatherForDate } from '../../lib/weather';
+import { fetchLiveRate } from '../../lib/currency';
 
 export default function TodayScreen() {
   const config = useJournalStore((s) => s.config);
@@ -60,6 +62,15 @@ export default function TodayScreen() {
       router.replace('/setup');
     }
   }, [config]);
+
+  useEffect(() => {
+    if (!dayLog?.weather) {
+      fetchWeatherForDate(today).then((w) => {
+        if (w) setWeather(today, w);
+      });
+    }
+    fetchLiveRate();
+  }, [today]);
 
   if (!config) return null;
 

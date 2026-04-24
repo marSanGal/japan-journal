@@ -45,6 +45,26 @@ export default function RootLayout() {
             presentation: 'card',
           }}
         />
+        <Stack.Screen
+          name="extras/goshuin"
+          options={{
+            headerShown: true,
+            headerTitle: 'Goshuin Book',
+            headerStyle: { backgroundColor: COLORS.background },
+            headerTintColor: COLORS.text,
+            presentation: 'card',
+          }}
+        />
+        <Stack.Screen
+          name="extras/konbini"
+          options={{
+            headerShown: true,
+            headerTitle: 'Konbini Bingo',
+            headerStyle: { backgroundColor: COLORS.background },
+            headerTintColor: COLORS.text,
+            presentation: 'card',
+          }}
+        />
       </Stack>
     </GestureHandlerRootView>
   );

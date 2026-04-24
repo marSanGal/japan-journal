@@ -3,11 +3,14 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { format } from 'date-fns';
 import { TripConfig, Entry, DayLog } from './types';
+import { GoshuinStamp } from './goshuin';
 
 interface JournalState {
   config: TripConfig | null;
   days: Record<string, DayLog>;
   epilogue: string | null;
+  goshuinStamps: GoshuinStamp[];
+  konbiniChecked: string[];
 
   setConfig: (config: TripConfig) => void;
   addEntry: (entry: Entry) => void;
@@ -17,6 +20,9 @@ interface JournalState {
   setSteps: (date: string, steps: number) => void;
   setNarrative: (date: string, narrative: string) => void;
   setEpilogue: (epilogue: string) => void;
+  addGoshuinStamp: (stamp: GoshuinStamp) => void;
+  deleteGoshuinStamp: (id: string) => void;
+  toggleKonbini: (item: string) => void;
   getDayLog: (date: string) => DayLog;
   getChapterNumber: (date: string) => number;
   getTodayDate: () => string;
@@ -33,6 +39,8 @@ export const useJournalStore = create<JournalState>()(
       config: null,
       days: {},
       epilogue: null,
+      goshuinStamps: [],
+      konbiniChecked: [],
 
       setConfig: (config) => set({ config }),
 
@@ -113,6 +121,23 @@ export const useJournalStore = create<JournalState>()(
         }),
 
       setEpilogue: (epilogue) => set({ epilogue }),
+
+      addGoshuinStamp: (stamp) =>
+        set((state) => ({
+          goshuinStamps: [...state.goshuinStamps, stamp],
+        })),
+
+      deleteGoshuinStamp: (id) =>
+        set((state) => ({
+          goshuinStamps: state.goshuinStamps.filter((s) => s.id !== id),
+        })),
+
+      toggleKonbini: (item) =>
+        set((state) => ({
+          konbiniChecked: state.konbiniChecked.includes(item)
+            ? state.konbiniChecked.filter((i) => i !== item)
+            : [...state.konbiniChecked, item],
+        })),
 
       getDayLog: (date) => {
         const state = get();

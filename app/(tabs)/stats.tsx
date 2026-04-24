@@ -1,12 +1,16 @@
-import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import { useRouter } from 'expo-router';
 import { useJournalStore } from '../../lib/store';
 import { COLORS, CATEGORY_CONFIG, getTravelerColor } from '../../lib/constants';
 import { formatYenWithUsd } from '../../lib/currency';
 import { EntryCategory, Entry } from '../../lib/types';
 
 export default function StatsScreen() {
+  const router = useRouter();
   const config = useJournalStore((s) => s.config);
   const days = useJournalStore((s) => s.days);
+  const goshuinCount = useJournalStore((s) => s.goshuinStamps.length);
+  const konbiniCount = useJournalStore((s) => s.konbiniChecked.length);
 
   if (!config) return null;
 
@@ -77,6 +81,28 @@ export default function StatsScreen() {
           ))}
         </View>
       )}
+
+      <View style={styles.extrasSection}>
+        <Text style={styles.sectionTitle}>Extras</Text>
+        <View style={styles.extrasRow}>
+          <TouchableOpacity
+            style={styles.extrasButton}
+            onPress={() => router.push('/extras/goshuin')}
+          >
+            <Text style={styles.extrasIcon}>⛩️</Text>
+            <Text style={styles.extrasLabel}>Goshuin</Text>
+            <Text style={styles.extrasCount}>{goshuinCount}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.extrasButton}
+            onPress={() => router.push('/extras/konbini')}
+          >
+            <Text style={styles.extrasIcon}>🏪</Text>
+            <Text style={styles.extrasLabel}>Konbini</Text>
+            <Text style={styles.extrasCount}>{konbiniCount}/25</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
 
       {sortedCategories.length > 0 && (
         <View style={styles.section}>
@@ -244,5 +270,40 @@ const styles = StyleSheet.create({
     color: COLORS.textLight,
     width: 28,
     textAlign: 'right',
+  },
+  extrasSection: {
+    paddingHorizontal: 16,
+    marginBottom: 24,
+  },
+  extrasRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  extrasButton: {
+    flex: 1,
+    backgroundColor: COLORS.white,
+    borderRadius: 16,
+    padding: 16,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+    elevation: 1,
+  },
+  extrasIcon: {
+    fontSize: 28,
+    marginBottom: 6,
+  },
+  extrasLabel: {
+    fontFamily: 'Nunito_700Bold',
+    fontSize: 14,
+    color: COLORS.text,
+  },
+  extrasCount: {
+    fontFamily: 'Nunito_400Regular',
+    fontSize: 12,
+    color: COLORS.textLight,
+    marginTop: 2,
   },
 });

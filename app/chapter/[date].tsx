@@ -16,6 +16,8 @@ import { COLORS } from '../../lib/constants';
 import EntryCard from '../../components/EntryCard';
 import ChapterCard from '../../components/ChapterCard';
 import DayHeader from '../../components/DayHeader';
+import PhotoCollage from '../../components/PhotoCollage';
+import { format, parseISO } from 'date-fns';
 
 export default function ChapterScreen() {
   const { date } = useLocalSearchParams<{ date: string }>();
@@ -30,6 +32,9 @@ export default function ChapterScreen() {
 
   const entries = dayLog?.entries || [];
   const narrative = dayLog?.narrative;
+  const dayPhotos = entries
+    .filter((e) => e.photoUri)
+    .map((e) => e.photoUri!);
 
   const handleGenerate = async () => {
     if (entries.length === 0) {
@@ -79,6 +84,14 @@ export default function ChapterScreen() {
           <View>
             <DayHeader date={date} />
             {narrative && <ChapterCard narrative={narrative} />}
+            {dayPhotos.length > 0 && (
+              <View style={{ paddingHorizontal: 16, marginTop: 12 }}>
+                <PhotoCollage
+                  photos={dayPhotos}
+                  dayLabel={`Day ${chapterNum} — ${format(parseISO(date), 'MMM d')}`}
+                />
+              </View>
+            )}
           </View>
         }
         ListFooterComponent={
