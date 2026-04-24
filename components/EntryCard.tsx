@@ -1,9 +1,10 @@
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, Image, StyleSheet } from 'react-native';
 import { format } from 'date-fns';
 import { Entry } from '../lib/types';
 import { CATEGORY_CONFIG, COLORS, getTravelerColor } from '../lib/constants';
 import { useJournalStore } from '../lib/store';
 import { formatYen } from '../lib/currency';
+import AudioPlayer from './AudioPlayer';
 
 interface Props {
   entry: Entry;
@@ -53,6 +54,14 @@ export default function EntryCard({ entry, onLongPress }: Props) {
         {entry.amountYen && (
           <Text style={styles.amount}>{formatYen(entry.amountYen)}</Text>
         )}
+        {entry.photoUri && (
+          <Image
+            source={{ uri: entry.photoUri }}
+            style={styles.photo}
+            resizeMode="cover"
+          />
+        )}
+        {entry.audioUri && <AudioPlayer uri={entry.audioUri} />}
       </View>
     </TouchableOpacity>
   );
@@ -146,5 +155,11 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: COLORS.orange,
     marginTop: 2,
+  },
+  photo: {
+    width: '100%',
+    height: 160,
+    borderRadius: 10,
+    marginTop: 8,
   },
 });

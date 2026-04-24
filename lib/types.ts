@@ -28,6 +28,7 @@ export interface Entry {
   mood?: string;
   together?: boolean;
   photoUri?: string;
+  audioUri?: string;
 }
 
 export interface DayLog {

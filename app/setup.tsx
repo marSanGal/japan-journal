@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -23,10 +23,13 @@ export default function SetupScreen() {
   const [startDate, setStartDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [totalDays, setTotalDays] = useState('21');
 
-  if (existingConfig) {
-    router.replace('/(tabs)');
-    return null;
-  }
+  useEffect(() => {
+    if (existingConfig) {
+      router.replace('/(tabs)');
+    }
+  }, [existingConfig]);
+
+  if (existingConfig) return null;
 
   const canSave = myName.trim() && startDate && totalDays;
 

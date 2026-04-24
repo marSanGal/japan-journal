@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback } from 'react';
+import { useRef, useState, useCallback, useEffect } from 'react';
 import {
   View,
   FlatList,
@@ -55,10 +55,13 @@ export default function TodayScreen() {
     [today, deleteEntry]
   );
 
-  if (!config) {
-    router.replace('/setup');
-    return null;
-  }
+  useEffect(() => {
+    if (!config) {
+      router.replace('/setup');
+    }
+  }, [config]);
+
+  if (!config) return null;
 
   return (
     <View style={styles.container}>

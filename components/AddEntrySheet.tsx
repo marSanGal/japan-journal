@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useMemo } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -6,16 +6,18 @@ import {
   TouchableOpacity,
   StyleSheet,
   Switch,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
+  Image,
+  Alert,
 } from 'react-native';
 import BottomSheet, { BottomSheetView, BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import * as Haptics from 'expo-haptics';
+import * as ImagePicker from 'expo-image-picker';
+import 'react-native-get-random-values';
 import { v4 as uuid } from 'uuid';
 import { useJournalStore } from '../lib/store';
 import { CATEGORY_CONFIG, COLORS } from '../lib/constants';
 import { EntryCategory } from '../lib/types';
+import AudioRecorder from './AudioRecorder';
 
 interface Props {
   sheetRef: React.RefObject<BottomSheet | null>;
@@ -31,6 +33,8 @@ export default function AddEntrySheet({ sheetRef }: Props) {
   const [amountYen, setAmountYen] = useState('');
   const [together, setTogether] = useState(true);
   const [timeOffset, setTimeOffset] = useState('0');
+  const [photoUri, setPhotoUri] = useState<string | undefined>(undefined);
+  const [audioUri, setAudioUri] = useState<string | undefined>(undefined);
 
   const snapPoints = useMemo(() => ['50%', '85%'], []);
 
@@ -41,6 +45,34 @@ export default function AddEntrySheet({ sheetRef }: Props) {
     setAmountYen('');
     setTogether(true);
     setTimeOffset('0');
+    setPhotoUri(undefined);
+    setAudioUri(undefined);
+  };
+
+  const pickPhoto = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      quality: 0.7,
+      allowsEditing: true,
+    });
+    if (!result.canceled && result.assets[0]) {
+      setPhotoUri(result.assets[0].uri);
+    }
+  };
+
+  const takePhoto = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission needed', 'Camera access is required to take photos.');
+      return;
+    }
+    const result = await ImagePicker.launchCameraAsync({
+      quality: 0.7,
+      allowsEditing: true,
+    });
+    if (!result.canceled && result.assets[0]) {
+      setPhotoUri(result.assets[0].uri);
+    }
   };
 
   const handleSave = useCallback(() => {
@@ -59,12 +91,14 @@ export default function AddEntrySheet({ sheetRef }: Props) {
       location: location.trim() || undefined,
       amountYen: amountYen ? parseInt(amountYen, 10) : undefined,
       together,
+      photoUri,
+      audioUri,
     });
 
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     reset();
     sheetRef.current?.close();
-  }, [category, text, location, amountYen, together, timeOffset, config, addEntry, sheetRef]);
+  }, [category, text, location, amountYen, together, timeOffset, config, addEntry, sheetRef, photoUri, audioUri]);
 
   const categories = Object.entries(CATEGORY_CONFIG) as [
     EntryCategory,
@@ -150,6 +184,36 @@ export default function AddEntrySheet({ sheetRef }: Props) {
               placeholderTextColor={COLORS.textLight}
               keyboardType="number-pad"
             />
+          )}
+
+          {category === 'sound' && (
+            <AudioRecorder
+              audioUri={audioUri}
+              onRecorded={(uri) => setAudioUri(uri)}
+              onClear={() => setAudioUri(undefined)}
+            />
+          )}
+
+          {/* Photo section */}
+          {photoUri ? (
+            <View style={styles.photoPreview}>
+              <Image source={{ uri: photoUri }} style={styles.previewImage} />
+              <TouchableOpacity
+                style={styles.removePhoto}
+                onPress={() => setPhotoUri(undefined)}
+              >
+                <Text style={styles.removePhotoText}>✕</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <View style={styles.photoButtons}>
+              <TouchableOpacity style={styles.photoButton} onPress={takePhoto}>
+                <Text style={styles.photoButtonText}>📷 Camera</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.photoButton} onPress={pickPhoto}>
+                <Text style={styles.photoButtonText}>🖼️ Gallery</Text>
+              </TouchableOpacity>
+            </View>
           )}
 
           <View style={styles.row}>
@@ -270,6 +334,52 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.border,
     marginBottom: 12,
+  },
+  photoButtons: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 12,
+  },
+  photoButton: {
+    flex: 1,
+    backgroundColor: COLORS.white,
+    borderRadius: 12,
+    padding: 14,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  photoButtonText: {
+    fontFamily: 'Nunito_600SemiBold',
+    fontSize: 14,
+    color: COLORS.text,
+  },
+  photoPreview: {
+    marginBottom: 12,
+    borderRadius: 12,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  previewImage: {
+    width: '100%',
+    height: 180,
+    borderRadius: 12,
+  },
+  removePhoto: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  removePhotoText: {
+    color: COLORS.white,
+    fontSize: 14,
+    fontFamily: 'Nunito_700Bold',
   },
   row: {
     flexDirection: 'row',

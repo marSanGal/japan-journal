@@ -7,6 +7,7 @@ import { TripConfig, Entry, DayLog } from './types';
 interface JournalState {
   config: TripConfig | null;
   days: Record<string, DayLog>;
+  epilogue: string | null;
 
   setConfig: (config: TripConfig) => void;
   addEntry: (entry: Entry) => void;
@@ -15,6 +16,7 @@ interface JournalState {
   setWeather: (date: string, weather: string) => void;
   setSteps: (date: string, steps: number) => void;
   setNarrative: (date: string, narrative: string) => void;
+  setEpilogue: (epilogue: string) => void;
   getDayLog: (date: string) => DayLog;
   getChapterNumber: (date: string) => number;
   getTodayDate: () => string;
@@ -30,6 +32,7 @@ export const useJournalStore = create<JournalState>()(
     (set, get) => ({
       config: null,
       days: {},
+      epilogue: null,
 
       setConfig: (config) => set({ config }),
 
@@ -108,6 +111,8 @@ export const useJournalStore = create<JournalState>()(
           const day = ensureDay(state.days, date);
           return { days: { ...state.days, [date]: { ...day, narrative } } };
         }),
+
+      setEpilogue: (epilogue) => set({ epilogue }),
 
       getDayLog: (date) => {
         const state = get();

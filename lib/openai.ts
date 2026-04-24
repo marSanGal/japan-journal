@@ -113,3 +113,43 @@ export const generateChapter = async (
 
   return response.choices[0]?.message?.content || 'Could not generate chapter.';
 };
+
+export const generateEpilogue = async (
+  chapters: { chapterNumber: number; narrative: string }[],
+  travelers: string[]
+): Promise<string> => {
+  const client = getClient();
+
+  const nameList = travelers.join(' and ');
+  const isSolo = travelers.length === 1;
+  const pronoun = isSolo ? 'they' : 'they all';
+
+  const chaptersText = chapters
+    .map((c) => `--- Chapter ${c.chapterNumber} ---\n${c.narrative}`)
+    .join('\n\n');
+
+  const systemPrompt = `You are writing the epilogue of a travel book about ${nameList} exploring Japan.
+You have been given all ${chapters.length} chapters of their journey.
+
+Write a single-page epilogue (4-6 paragraphs) in the style of a Studio Ghibli film narrator:
+
+- Reflect on the journey as a whole — the arc from arrival to departure
+- Recall the most vivid moments, weaving them together into a tapestry
+- Notice how ${pronoun} changed, what ${pronoun} learned, what surprised them
+- Mention specific details from the chapters — a particular meal, a shrine, a sound, a phrase learned
+- End with a final image: ${isSolo ? travelers[0] : nameList} leaving Japan, carrying something invisible but heavy with meaning
+- The tone should be bittersweet and beautiful — the trip is over, but the story lives on
+- Title it: "Epilogue — {an evocative closing title}"`;
+
+  const response = await client.chat.completions.create({
+    model: 'gpt-4o',
+    messages: [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: `Here are all the chapters:\n\n${chaptersText}` },
+    ],
+    temperature: 0.85,
+    max_tokens: 2000,
+  });
+
+  return response.choices[0]?.message?.content || 'Could not generate epilogue.';
+};

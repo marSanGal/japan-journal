@@ -1,8 +1,21 @@
-import { View, Text, TouchableOpacity, FlatList, StyleSheet } from 'react-native';
+import { useState } from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  FlatList,
+  StyleSheet,
+  ActivityIndicator,
+  Alert,
+} from 'react-native';
 import { router } from 'expo-router';
 import { format, addDays, isBefore, startOfDay } from 'date-fns';
+import * as Haptics from 'expo-haptics';
 import { useJournalStore } from '../../lib/store';
 import { COLORS } from '../../lib/constants';
+import { generateEpilogue } from '../../lib/openai';
+import { exportPdf } from '../../lib/export-pdf';
+import ChapterCard from '../../components/ChapterCard';
 
 interface ChapterItem {
   date: string;
@@ -14,6 +27,10 @@ interface ChapterItem {
 export default function BookScreen() {
   const config = useJournalStore((s) => s.config);
   const days = useJournalStore((s) => s.days);
+  const epilogue = useJournalStore((s) => s.epilogue);
+  const setEpilogue = useJournalStore((s) => s.setEpilogue);
+  const [loading, setLoading] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
   if (!config) return null;
 
@@ -34,20 +51,66 @@ export default function BookScreen() {
     });
   }
 
+  const writtenChapters = chapters.filter((c) => {
+    const day = days[c.date];
+    return day?.narrative;
+  });
+
+  const handleEpilogue = async () => {
+    if (writtenChapters.length < 2) {
+      Alert.alert(
+        'Not enough chapters',
+        'Write at least 2 chapters before generating the epilogue.'
+      );
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const chaptersData = writtenChapters.map((c) => ({
+        chapterNumber: c.chapterNumber,
+        narrative: days[c.date]!.narrative!,
+      }));
+      const allTravelers = [config.myName, ...config.partners];
+      const result = await generateEpilogue(chaptersData, allTravelers);
+      setEpilogue(result);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    } catch (err: any) {
+      Alert.alert(
+        'Generation failed',
+        err?.message || 'Check your OpenAI API key and internet connection.'
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleExport = async () => {
+    setExporting(true);
+    try {
+      await exportPdf(config, days, epilogue);
+    } catch (err: any) {
+      Alert.alert('Export failed', err?.message || 'Could not generate PDF.');
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>📖 Our Story</Text>
-        <Text style={styles.subtitle}>
-          {config.partners.length > 0
-            ? `${[config.myName, ...config.partners].join(' & ')} in Japan`
-            : `${config.myName} in Japan`}
-        </Text>
-      </View>
-
       <FlatList
         data={chapters}
         keyExtractor={(item) => item.date}
+        ListHeaderComponent={
+          <View style={styles.header}>
+            <Text style={styles.title}>📖 Our Story</Text>
+            <Text style={styles.subtitle}>
+              {config.partners.length > 0
+                ? `${[config.myName, ...config.partners].join(' & ')} in Japan`
+                : `${config.myName} in Japan`}
+            </Text>
+          </View>
+        }
         renderItem={({ item }) => {
           const dateObj = new Date(item.date + 'T12:00:00');
           return (
@@ -87,6 +150,45 @@ export default function BookScreen() {
             </TouchableOpacity>
           );
         }}
+        ListFooterComponent={
+          <View style={styles.footer}>
+            {epilogue && <ChapterCard narrative={epilogue} />}
+            {loading ? (
+              <View style={styles.loadingContainer}>
+                <Text style={styles.loadingIcon}>📝</Text>
+                <ActivityIndicator size="small" color={COLORS.pink} />
+                <Text style={styles.loadingText}>Writing your epilogue...</Text>
+              </View>
+            ) : (
+              <TouchableOpacity
+                style={epilogue ? styles.rewriteButton : styles.epilogueButton}
+                onPress={handleEpilogue}
+              >
+                <Text
+                  style={
+                    epilogue ? styles.rewriteText : styles.epilogueButtonText
+                  }
+                >
+                  {epilogue
+                    ? '🔄 Rewrite Epilogue'
+                    : '✨ Write Trip Epilogue'}
+                </Text>
+              </TouchableOpacity>
+            )}
+
+            {writtenChapters.length > 0 && (
+              <TouchableOpacity
+                style={styles.exportButton}
+                onPress={handleExport}
+                disabled={exporting}
+              >
+                <Text style={styles.exportText}>
+                  {exporting ? '📄 Generating PDF...' : '📄 Export as PDF Scrapbook'}
+                </Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        }
         ListEmptyComponent={
           <View style={styles.empty}>
             <Text style={styles.emptyText}>
@@ -190,6 +292,60 @@ const styles = StyleSheet.create({
     fontFamily: 'Nunito_700Bold',
     fontSize: 22,
     color: COLORS.textLight,
+  },
+  footer: {
+    marginTop: 16,
+    gap: 12,
+  },
+  epilogueButton: {
+    backgroundColor: COLORS.pink,
+    borderRadius: 16,
+    padding: 18,
+    alignItems: 'center',
+  },
+  epilogueButtonText: {
+    fontFamily: 'Nunito_700Bold',
+    fontSize: 17,
+    color: COLORS.white,
+  },
+  rewriteButton: {
+    backgroundColor: COLORS.white,
+    borderRadius: 14,
+    padding: 14,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  rewriteText: {
+    fontFamily: 'Nunito_600SemiBold',
+    fontSize: 15,
+    color: COLORS.textLight,
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    padding: 24,
+    gap: 8,
+  },
+  loadingIcon: {
+    fontSize: 32,
+  },
+  loadingText: {
+    fontFamily: 'Nunito_600SemiBold',
+    fontSize: 15,
+    color: COLORS.textLight,
+  },
+  exportButton: {
+    backgroundColor: COLORS.white,
+    borderRadius: 14,
+    padding: 14,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.green,
+  },
+  exportText: {
+    fontFamily: 'Nunito_600SemiBold',
+    fontSize: 15,
+    color: COLORS.green,
   },
   empty: {
     alignItems: 'center',
