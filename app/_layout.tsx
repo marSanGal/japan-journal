@@ -1,0 +1,51 @@
+import { useEffect } from 'react';
+import { Stack } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import { useFonts, Nunito_400Regular, Nunito_600SemiBold, Nunito_700Bold, Nunito_800ExtraBold } from '@expo-google-fonts/nunito';
+import * as SplashScreen from 'expo-splash-screen';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { COLORS } from '../lib/constants';
+
+SplashScreen.preventAutoHideAsync();
+
+export default function RootLayout() {
+  const [fontsLoaded] = useFonts({
+    Nunito_400Regular,
+    Nunito_600SemiBold,
+    Nunito_700Bold,
+    Nunito_800ExtraBold,
+  });
+
+  useEffect(() => {
+    if (fontsLoaded) {
+      SplashScreen.hideAsync();
+    }
+  }, [fontsLoaded]);
+
+  if (!fontsLoaded) return null;
+
+  return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <StatusBar style="dark" />
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: COLORS.background },
+        }}
+      >
+        <Stack.Screen name="setup" options={{ gestureEnabled: false }} />
+        <Stack.Screen name="(tabs)" options={{ gestureEnabled: false }} />
+        <Stack.Screen
+          name="chapter/[date]"
+          options={{
+            headerShown: true,
+            headerTitle: '',
+            headerStyle: { backgroundColor: COLORS.background },
+            headerTintColor: COLORS.text,
+            presentation: 'card',
+          }}
+        />
+      </Stack>
+    </GestureHandlerRootView>
+  );
+}
