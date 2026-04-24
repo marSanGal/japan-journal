@@ -1,4 +1,4 @@
-import { Share, Platform } from 'react-native';
+import { Share } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import { Entry } from './types';
 

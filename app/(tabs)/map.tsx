@@ -23,10 +23,16 @@ export default function MapScreen() {
         if (!entry.location) continue;
         const match = fuzzyMatchLocation(entry.location);
         if (match) {
+          let hash = 0;
+          for (let i = 0; i < entry.id.length; i++) {
+            hash = ((hash << 5) - hash + entry.id.charCodeAt(i)) | 0;
+          }
+          const jitterLat = ((hash & 0xff) / 255 - 0.5) * 0.003;
+          const jitterLng = (((hash >> 8) & 0xff) / 255 - 0.5) * 0.003;
           results.push({
             entry,
-            lat: match.lat + (Math.random() - 0.5) * 0.002,
-            lng: match.lng + (Math.random() - 0.5) * 0.002,
+            lat: match.lat + jitterLat,
+            lng: match.lng + jitterLng,
           });
         }
       }

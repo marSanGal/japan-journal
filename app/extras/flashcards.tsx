@@ -16,7 +16,6 @@ import {
   generateFlashcards,
   generatePhraseCards,
   exportAnkiDeck,
-  Flashcard,
 } from '../../lib/flashcards';
 
 export default function FlashcardsScreen() {

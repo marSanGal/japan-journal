@@ -39,10 +39,20 @@ export default function AudioRecorder({ audioUri, onRecorded, onClear }: Props) 
       setIsRecording(true);
       setSeconds(0);
 
+      const recRef = newRecording;
       timerRef.current = setInterval(() => {
         setSeconds((s) => {
           if (s >= 9) {
-            stopRecording();
+            if (timerRef.current) clearInterval(timerRef.current);
+            recRef.stopAndUnloadAsync().then(() => {
+              const uri = recRef.getURI();
+              setRecording(null);
+              setIsRecording(false);
+              if (uri) onRecorded(uri);
+            }).catch(() => {
+              setRecording(null);
+              setIsRecording(false);
+            });
             return 10;
           }
           return s + 1;

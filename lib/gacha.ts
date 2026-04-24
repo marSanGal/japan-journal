@@ -1,5 +1,4 @@
 import { DayLog } from './types';
-import { GoshuinStamp } from './goshuin';
 
 export interface Badge {
   id: string;

@@ -37,6 +37,11 @@ export default function GoshuinScreen() {
   };
 
   const pickPhoto = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission needed', 'Camera access is required to take stamp photos.');
+      return;
+    }
     const result = await ImagePicker.launchCameraAsync({
       quality: 0.8,
       allowsEditing: true,

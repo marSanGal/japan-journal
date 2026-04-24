@@ -1,5 +1,4 @@
 import { Entry, DayLog } from './types';
-import { CATEGORY_CONFIG } from './constants';
 
 export interface Flashcard {
   id: string;

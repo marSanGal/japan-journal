@@ -1,6 +1,9 @@
 import { Entry, DayLog } from './types';
 import { CATEGORY_CONFIG } from './constants';
 
+const escapeHtml = (s: string): string =>
+  s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
 const pickQuote = (narrative: string): string => {
   const sentences = narrative
     .split(/[.!?]+/)
@@ -118,8 +121,8 @@ export const buildPostcardHtml = (
     </div>
   </div>
   <div class="quote-section">
-    ${quote ? `<div class="quote">"${quote}"</div>` : ''}
-    <div class="highlights">${entryHighlights}</div>
+    ${quote ? `<div class="quote">"${escapeHtml(quote)}"</div>` : ''}
+    <div class="highlights">${escapeHtml(entryHighlights)}</div>
   </div>
   <div class="brand">🌸 Japan Journal</div>
 </body>

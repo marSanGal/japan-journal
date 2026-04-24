@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useJournalStore } from '../../lib/store';
