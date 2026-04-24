@@ -1,6 +1,6 @@
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { useJournalStore } from '../../lib/store';
-import { COLORS, CATEGORY_CONFIG } from '../../lib/constants';
+import { COLORS, CATEGORY_CONFIG, getTravelerColor } from '../../lib/constants';
 import { formatYenWithUsd } from '../../lib/currency';
 import { EntryCategory, Entry } from '../../lib/types';
 
@@ -10,14 +10,13 @@ export default function StatsScreen() {
 
   if (!config) return null;
 
+  const allNames = [config.myName, ...config.partners];
   const allEntries: Entry[] = Object.values(days).flatMap((d) => d.entries);
   const totalEntries = allEntries.length;
-  const traveler1Entries = allEntries.filter(
-    (e) => e.author === config.traveler1
-  ).length;
-  const traveler2Entries = allEntries.filter(
-    (e) => e.author === config.traveler2
-  ).length;
+  const entriesByTraveler = allNames.map((name) => ({
+    name,
+    count: allEntries.filter((e) => e.author === name).length,
+  }));
   const totalYen = allEntries
     .filter((e) => e.amountYen)
     .reduce((sum, e) => sum + (e.amountYen || 0), 0);
@@ -37,7 +36,9 @@ export default function StatsScreen() {
       <View style={styles.header}>
         <Text style={styles.title}>⭐ Trip Stats</Text>
         <Text style={styles.subtitle}>
-          {config.traveler1} & {config.traveler2}
+          {config.partners.length > 0
+            ? [config.myName, ...config.partners].join(' & ')
+            : config.myName}
         </Text>
       </View>
 
@@ -57,23 +58,25 @@ export default function StatsScreen() {
         />
       </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>By Traveler</Text>
-        <View style={styles.travelerRow}>
-          <View style={[styles.travelerBar, { backgroundColor: COLORS.traveler1 }]}>
-            <Text style={styles.travelerBarText}>
-              {config.traveler1}: {traveler1Entries}
-            </Text>
-          </View>
+      {allNames.length > 1 && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>By Traveler</Text>
+          {entriesByTraveler.map(({ name, count }) => (
+            <View key={name} style={styles.travelerRow}>
+              <View
+                style={[
+                  styles.travelerBar,
+                  { backgroundColor: getTravelerColor(name, allNames) },
+                ]}
+              >
+                <Text style={styles.travelerBarText}>
+                  {name}: {count}
+                </Text>
+              </View>
+            </View>
+          ))}
         </View>
-        <View style={styles.travelerRow}>
-          <View style={[styles.travelerBar, { backgroundColor: COLORS.traveler2 }]}>
-            <Text style={styles.travelerBarText}>
-              {config.traveler2}: {traveler2Entries}
-            </Text>
-          </View>
-        </View>
-      </View>
+      )}
 
       {sortedCategories.length > 0 && (
         <View style={styles.section}>

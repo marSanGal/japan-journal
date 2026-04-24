@@ -39,7 +39,9 @@ export default function BookScreen() {
       <View style={styles.header}>
         <Text style={styles.title}>📖 Our Story</Text>
         <Text style={styles.subtitle}>
-          {config.traveler1} & {config.traveler2} in Japan
+          {config.partners.length > 0
+            ? `${[config.myName, ...config.partners].join(' & ')} in Japan`
+            : `${config.myName} in Japan`}
         </Text>
       </View>
 

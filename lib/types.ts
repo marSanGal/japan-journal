@@ -11,9 +11,8 @@ export type EntryCategory =
   | 'surprise';
 
 export interface TripConfig {
-  traveler1: string;
-  traveler2: string;
   myName: string;
+  partners: string[];
   startDate: string;
   totalDays: number;
 }

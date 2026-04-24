@@ -85,12 +85,14 @@ export default function TodayScreen() {
         ListFooterComponent={
           entries.length > 0 ? (
             <View style={styles.footer}>
-              <TouchableOpacity
-                style={styles.syncButton}
-                onPress={() => setSyncVisible(true)}
-              >
-                <Text style={styles.syncText}>🔄 Partner Sync</Text>
-              </TouchableOpacity>
+              {config.partners.length > 0 && (
+                <TouchableOpacity
+                  style={styles.syncButton}
+                  onPress={() => setSyncVisible(true)}
+                >
+                  <Text style={styles.syncText}>🔄 Partner Sync</Text>
+                </TouchableOpacity>
+              )}
               <TouchableOpacity
                 style={styles.chapterButton}
                 onPress={() => router.push(`/chapter/${today}`)}

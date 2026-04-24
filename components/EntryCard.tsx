@@ -1,7 +1,7 @@
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { format } from 'date-fns';
 import { Entry } from '../lib/types';
-import { CATEGORY_CONFIG, COLORS } from '../lib/constants';
+import { CATEGORY_CONFIG, COLORS, getTravelerColor } from '../lib/constants';
 import { useJournalStore } from '../lib/store';
 import { formatYen } from '../lib/currency';
 
@@ -14,8 +14,8 @@ export default function EntryCard({ entry, onLongPress }: Props) {
   const config = useJournalStore((s) => s.config);
   const catConfig = CATEGORY_CONFIG[entry.category];
   const time = format(new Date(entry.timestamp), 'h:mm a');
-  const isTraveler1 = config && entry.author === config.traveler1;
-  const authorColor = isTraveler1 ? COLORS.traveler1 : COLORS.traveler2;
+  const allNames = config ? [config.myName, ...config.partners] : [];
+  const authorColor = getTravelerColor(entry.author, allNames);
 
   return (
     <TouchableOpacity

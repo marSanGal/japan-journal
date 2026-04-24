@@ -25,7 +25,9 @@ export default function DayHeader({ date, onWeatherPress }: Props) {
       <Text style={styles.date}>{formattedDate}</Text>
       {config && (
         <Text style={styles.travelers}>
-          {config.traveler1} & {config.traveler2}
+          {config.partners.length > 0
+            ? [config.myName, ...config.partners].join(' & ')
+            : config.myName}
         </Text>
       )}
       <TouchableOpacity onPress={onWeatherPress} style={styles.weatherRow}>

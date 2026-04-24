@@ -7,6 +7,9 @@ import {
   StyleSheet,
   Alert,
   Modal,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { useJournalStore } from '../lib/store';
@@ -57,49 +60,59 @@ export default function SyncPanel({ date, visible, onClose }: Props) {
 
   return (
     <Modal visible={visible} animationType="slide" transparent>
-      <View style={styles.overlay}>
-        <View style={styles.sheet}>
-          <Text style={styles.title}>Partner Sync</Text>
-          <Text style={styles.subtitle}>
-            Share your entries, then import your partner's
-          </Text>
+      <KeyboardAvoidingView
+        style={styles.overlay}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          bounces={false}
+        >
+          <View style={styles.spacer} />
+          <View style={styles.sheet}>
+            <Text style={styles.title}>Partner Sync</Text>
+            <Text style={styles.subtitle}>
+              Share your entries, then import your partner's
+            </Text>
 
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>📤 Share My Entries</Text>
-            <View style={styles.buttonRow}>
-              <TouchableOpacity style={styles.button} onPress={handleShare}>
-                <Text style={styles.buttonText}>Share</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.buttonAlt} onPress={handleCopy}>
-                <Text style={styles.buttonAltText}>Copy</Text>
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>📤 Share My Entries</Text>
+              <View style={styles.buttonRow}>
+                <TouchableOpacity style={styles.button} onPress={handleShare}>
+                  <Text style={styles.buttonText}>Share</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.buttonAlt} onPress={handleCopy}>
+                  <Text style={styles.buttonAltText}>Copy</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>📥 Import Partner's Entries</Text>
+              <TextInput
+                style={styles.importInput}
+                value={importText}
+                onChangeText={setImportText}
+                placeholder="Paste your partner's entries here..."
+                placeholderTextColor={COLORS.textLight}
+                multiline
+              />
+              <TouchableOpacity
+                style={[styles.button, !importText.trim() && styles.disabled]}
+                onPress={handleImport}
+                disabled={!importText.trim()}
+              >
+                <Text style={styles.buttonText}>Import</Text>
               </TouchableOpacity>
             </View>
-          </View>
 
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>📥 Import Partner's Entries</Text>
-            <TextInput
-              style={styles.importInput}
-              value={importText}
-              onChangeText={setImportText}
-              placeholder="Paste your partner's entries here..."
-              placeholderTextColor={COLORS.textLight}
-              multiline
-            />
-            <TouchableOpacity
-              style={[styles.button, !importText.trim() && styles.disabled]}
-              onPress={handleImport}
-              disabled={!importText.trim()}
-            >
-              <Text style={styles.buttonText}>Import</Text>
+            <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+              <Text style={styles.closeText}>Close</Text>
             </TouchableOpacity>
           </View>
-
-          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-            <Text style={styles.closeText}>Close</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
@@ -108,7 +121,13 @@ const styles = StyleSheet.create({
   overlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.3)',
+  },
+  scrollContent: {
+    flexGrow: 1,
     justifyContent: 'flex-end',
+  },
+  spacer: {
+    flex: 1,
   },
   sheet: {
     backgroundColor: COLORS.backgroundAlt,

@@ -10,7 +10,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
+import BottomSheet, { BottomSheetView, BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import * as Haptics from 'expo-haptics';
 import { v4 as uuid } from 'uuid';
 import { useJournalStore } from '../lib/store';
@@ -77,16 +77,18 @@ export default function AddEntrySheet({ sheetRef }: Props) {
       index={-1}
       snapPoints={snapPoints}
       enablePanDownToClose
+      keyboardBehavior="interactive"
+      keyboardBlurBehavior="restore"
+      android_keyboardInputMode="adjustResize"
       backgroundStyle={styles.sheetBg}
       handleIndicatorStyle={styles.handle}
       onChange={(index) => {
         if (index === -1) reset();
       }}
     >
-      <BottomSheetView style={styles.content}>
-        <Text style={styles.title}>New Entry</Text>
-
-        {!category ? (
+      {!category ? (
+        <BottomSheetView style={styles.content}>
+          <Text style={styles.title}>New Entry</Text>
           <View style={styles.grid}>
             {categories.map(([key, cfg]) => (
               <TouchableOpacity
@@ -103,62 +105,66 @@ export default function AddEntrySheet({ sheetRef }: Props) {
               </TouchableOpacity>
             ))}
           </View>
-        ) : (
-          <ScrollView
-            style={styles.form}
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
+        </BottomSheetView>
+      ) : (
+        <BottomSheetScrollView
+          style={styles.form}
+          contentContainerStyle={styles.formContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <Text style={styles.title}>New Entry</Text>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => setCategory(null)}
           >
-            <TouchableOpacity
-              style={styles.backButton}
-              onPress={() => setCategory(null)}
-            >
-              <Text style={styles.backText}>
-                ← {CATEGORY_CONFIG[category].icon} {CATEGORY_CONFIG[category].label}
-              </Text>
-            </TouchableOpacity>
+            <Text style={styles.backText}>
+              ← {CATEGORY_CONFIG[category].icon} {CATEGORY_CONFIG[category].label}
+            </Text>
+          </TouchableOpacity>
 
-            <TextInput
-              style={styles.textInput}
-              value={text}
-              onChangeText={setText}
-              placeholder="What happened?"
-              placeholderTextColor={COLORS.textLight}
-              multiline
-              autoFocus
-            />
+          <TextInput
+            style={styles.textInput}
+            value={text}
+            onChangeText={setText}
+            placeholder="What happened?"
+            placeholderTextColor={COLORS.textLight}
+            multiline
+            autoFocus
+          />
 
+          <TextInput
+            style={styles.input}
+            value={location}
+            onChangeText={setLocation}
+            placeholder="📍 Location (optional)"
+            placeholderTextColor={COLORS.textLight}
+          />
+
+          {category === 'purchase' && (
             <TextInput
               style={styles.input}
-              value={location}
-              onChangeText={setLocation}
-              placeholder="📍 Location (optional)"
+              value={amountYen}
+              onChangeText={setAmountYen}
+              placeholder="💴 Amount in yen"
+              placeholderTextColor={COLORS.textLight}
+              keyboardType="number-pad"
+            />
+          )}
+
+          <View style={styles.row}>
+            <Text style={styles.rowLabel}>⏱️ Minutes ago</Text>
+            <TextInput
+              style={styles.smallInput}
+              value={timeOffset}
+              onChangeText={setTimeOffset}
+              keyboardType="number-pad"
+              placeholder="0"
               placeholderTextColor={COLORS.textLight}
             />
+          </View>
 
-            {category === 'purchase' && (
-              <TextInput
-                style={styles.input}
-                value={amountYen}
-                onChangeText={setAmountYen}
-                placeholder="💴 Amount in yen"
-                placeholderTextColor={COLORS.textLight}
-                keyboardType="number-pad"
-              />
-            )}
-
-            <View style={styles.row}>
-              <Text style={styles.rowLabel}>⏱️ Minutes ago</Text>
-              <TextInput
-                style={styles.smallInput}
-                value={timeOffset}
-                onChangeText={setTimeOffset}
-                keyboardType="number-pad"
-                placeholder="0"
-                placeholderTextColor={COLORS.textLight}
-              />
-            </View>
-
+          {config && config.partners.length > 0 && (
             <View style={styles.row}>
               <Text style={styles.rowLabel}>👫 Together?</Text>
               <Switch
@@ -168,18 +174,18 @@ export default function AddEntrySheet({ sheetRef }: Props) {
                 thumbColor={COLORS.white}
               />
             </View>
+          )}
 
-            <TouchableOpacity
-              style={[styles.saveButton, !text.trim() && styles.saveDisabled]}
-              onPress={handleSave}
-              disabled={!text.trim()}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.saveText}>Save ✨</Text>
-            </TouchableOpacity>
-          </ScrollView>
-        )}
-      </BottomSheetView>
+          <TouchableOpacity
+            style={[styles.saveButton, !text.trim() && styles.saveDisabled]}
+            onPress={handleSave}
+            disabled={!text.trim()}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.saveText}>Save ✨</Text>
+          </TouchableOpacity>
+        </BottomSheetScrollView>
+      )}
     </BottomSheet>
   );
 }
@@ -228,6 +234,10 @@ const styles = StyleSheet.create({
   },
   form: {
     flex: 1,
+  },
+  formContent: {
+    padding: 20,
+    paddingBottom: 40,
   },
   backButton: {
     marginBottom: 12,

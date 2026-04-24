@@ -28,10 +28,68 @@ const formatEntries = (entries: Entry[]): string => {
     .join('\n');
 };
 
+const buildPrompt = (
+  travelers: string[],
+  chapterNumber: number
+): string => {
+  if (travelers.length === 1) {
+    const name = travelers[0];
+    return `You are writing a book — a travel story about someone exploring Japan.
+Their name is ${name}. This is Chapter ${chapterNumber} of their journey.
+
+Write in the style of a Studio Ghibli film narrator — warm, gentle, full of wonder
+at small things. You notice the way light falls on old wood, the sound of wind
+through bamboo, the quiet kindness of strangers. You find magic in the ordinary.
+
+You will receive a chronological list of log entries from the traveler's day. Each
+entry has a timestamp and what they experienced.
+
+Write a single chapter (3-5 paragraphs) in third person, like a chapter of a novel:
+
+- Follow the chronological flow of the day — morning to night
+- Narrate ${name} as the protagonist on a quiet adventure
+- Give them personality through what they notice and do
+- Weave in sounds, food, purchases, phrases, and tiny moments naturally as part of
+  the story, never as a list
+- End the chapter with an image — the last moment of the day, a quiet scene, a
+  feeling — not a summary or conclusion
+- Title the chapter on the first line: "Chapter ${chapterNumber} — {a short evocative title based on the day}"`;
+  }
+
+  const nameList = travelers.join(', ');
+  const nameExamples = travelers.slice(0, 2);
+
+  return `You are writing a book — a travel story about ${travelers.length} people exploring Japan together.
+Their names are ${nameList}. This is Chapter ${chapterNumber} of their journey.
+
+Write in the style of a Studio Ghibli film narrator — warm, gentle, full of wonder
+at small things. You notice the way light falls on old wood, the sound of wind
+through bamboo, the quiet kindness of strangers. You find magic in the ordinary.
+
+You will receive a chronological list of log entries from all travelers' day. Each
+entry has a timestamp, the author's name, and what they experienced. Some entries
+are marked "together" (they were side by side) and some are "solo" (they split up
+and explored alone).
+
+Write a single chapter (3-5 paragraphs) in third person, like a chapter of a novel:
+
+- Follow the chronological flow of the day — morning to night
+- When they are together, narrate them as a group: "They wandered through...",
+  "${nameExamples[0]} pointed out... while ${nameExamples[1]} stopped to..."
+- When they split up, follow each thread separately, then bring them back together
+  when the timestamps converge again
+- Give each character their own personality through what they notice and do — let
+  the entries reveal who they are
+- Weave in sounds, food, purchases, phrases, and tiny moments naturally as part of
+  the story, never as a list
+- End the chapter with an image — the last moment of the day, a quiet scene, a
+  feeling — not a summary or conclusion
+- Title the chapter on the first line: "Chapter ${chapterNumber} — {a short evocative title based on the day}"`;
+};
+
 export const generateChapter = async (
   entries: Entry[],
-  traveler1: string,
-  traveler2: string,
+  travelers: string[],
   chapterNumber: number,
   weather?: string
 ): Promise<string> => {
@@ -41,33 +99,7 @@ export const generateChapter = async (
   );
   const entriesText = formatEntries(sorted);
   const weatherNote = weather ? `\nToday's weather: ${weather}` : '';
-
-  const systemPrompt = `You are writing a book — a travel story about two people exploring Japan together.
-Their names are ${traveler1} and ${traveler2}. This is Chapter ${chapterNumber} of their journey.
-
-Write in the style of a Studio Ghibli film narrator — warm, gentle, full of wonder
-at small things. You notice the way light falls on old wood, the sound of wind
-through bamboo, the quiet kindness of strangers. You find magic in the ordinary.
-
-You will receive a chronological list of log entries from both travelers' day. Each
-entry has a timestamp, the author's name, and what they experienced. Some entries
-are marked "together" (they were side by side) and some are "solo" (they split up
-and explored alone).
-
-Write a single chapter (3-5 paragraphs) in third person, like a chapter of a novel:
-
-- Follow the chronological flow of the day — morning to night
-- When they are together, narrate them as a pair: "They wandered through...",
-  "${traveler1} pointed out... while ${traveler2} stopped to..."
-- When they split up, follow each thread: "${traveler1} disappeared into the backstreets
-  while ${traveler2} found..." then bring them back together when the timestamps converge
-- Give each character their own personality through what they notice and do — let
-  the entries reveal who they are
-- Weave in sounds, food, purchases, phrases, and tiny moments naturally as part of
-  the story, never as a list
-- End the chapter with an image — the last moment of the day, a quiet scene, a
-  feeling — not a summary or conclusion
-- Title the chapter on the first line: "Chapter ${chapterNumber} — {a short evocative title based on the day}"`;
+  const systemPrompt = buildPrompt(travelers, chapterNumber);
 
   const response = await client.chat.completions.create({
     model: 'gpt-4o',

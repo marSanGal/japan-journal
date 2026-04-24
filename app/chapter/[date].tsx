@@ -39,10 +39,10 @@ export default function ChapterScreen() {
 
     setLoading(true);
     try {
+      const allTravelers = [config.myName, ...config.partners];
       const chapter = await generateChapter(
         entries,
-        config.traveler1,
-        config.traveler2,
+        allTravelers,
         chapterNum,
         dayLog?.weather
       );

@@ -15,9 +15,18 @@ export const COLORS = {
   textLight: '#8B7B6B',
   white: '#FFFFFF',
   border: '#F0E0D6',
-  traveler1: '#F4A7BB',
-  traveler2: '#A8D4E6',
 };
+
+export const TRAVELER_COLORS = [
+  '#F4A7BB',
+  '#A8D4E6',
+  '#A8D8A8',
+  '#C5A8D8',
+  '#F4C28C',
+  '#E89090',
+  '#B8C8A8',
+  '#D4A8D8',
+];
 
 export const CATEGORY_CONFIG: Record<
   EntryCategory,
@@ -45,3 +54,11 @@ export const WEATHER_OPTIONS = [
 ];
 
 export const USD_PER_YEN = 0.0067;
+
+export const getTravelerColor = (
+  name: string,
+  allNames: string[]
+): string => {
+  const index = allNames.indexOf(name);
+  return TRAVELER_COLORS[index >= 0 ? index % TRAVELER_COLORS.length : 0];
+};
