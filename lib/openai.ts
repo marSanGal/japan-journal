@@ -2,6 +2,7 @@ import OpenAI from 'openai';
 import Constants from 'expo-constants';
 import { Entry } from './types';
 import { CATEGORY_CONFIG } from './constants';
+import { getPersona } from './personas';
 
 const getClient = () => {
   const apiKey =
@@ -30,16 +31,17 @@ const formatEntries = (entries: Entry[]): string => {
 
 const buildPrompt = (
   travelers: string[],
-  chapterNumber: number
+  chapterNumber: number,
+  personaId = 'ghibli'
 ): string => {
+  const persona = getPersona(personaId);
+
   if (travelers.length === 1) {
     const name = travelers[0];
     return `You are writing a book — a travel story about someone exploring Japan.
 Their name is ${name}. This is Chapter ${chapterNumber} of their journey.
 
-Write in the style of a Studio Ghibli film narrator — warm, gentle, full of wonder
-at small things. You notice the way light falls on old wood, the sound of wind
-through bamboo, the quiet kindness of strangers. You find magic in the ordinary.
+${persona.prompt}
 
 You will receive a chronological list of log entries from the traveler's day. Each
 entry has a timestamp and what they experienced.
@@ -62,9 +64,7 @@ Write a single chapter (3-5 paragraphs) in third person, like a chapter of a nov
   return `You are writing a book — a travel story about ${travelers.length} people exploring Japan together.
 Their names are ${nameList}. This is Chapter ${chapterNumber} of their journey.
 
-Write in the style of a Studio Ghibli film narrator — warm, gentle, full of wonder
-at small things. You notice the way light falls on old wood, the sound of wind
-through bamboo, the quiet kindness of strangers. You find magic in the ordinary.
+${persona.prompt}
 
 You will receive a chronological list of log entries from all travelers' day. Each
 entry has a timestamp, the author's name, and what they experienced. Some entries
@@ -91,7 +91,8 @@ export const generateChapter = async (
   entries: Entry[],
   travelers: string[],
   chapterNumber: number,
-  weather?: string
+  weather?: string,
+  personaId = 'ghibli'
 ): Promise<string> => {
   const client = getClient();
   const sorted = [...entries].sort(
@@ -99,7 +100,7 @@ export const generateChapter = async (
   );
   const entriesText = formatEntries(sorted);
   const weatherNote = weather ? `\nToday's weather: ${weather}` : '';
-  const systemPrompt = buildPrompt(travelers, chapterNumber);
+  const systemPrompt = buildPrompt(travelers, chapterNumber, personaId);
 
   const response = await client.chat.completions.create({
     model: 'gpt-4o',

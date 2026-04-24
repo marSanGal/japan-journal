@@ -65,6 +65,66 @@ export default function RootLayout() {
             presentation: 'card',
           }}
         />
+        <Stack.Screen
+          name="extras/postcard"
+          options={{
+            headerShown: true,
+            headerTitle: 'Postcards',
+            headerStyle: { backgroundColor: COLORS.background },
+            headerTintColor: COLORS.text,
+            presentation: 'card',
+          }}
+        />
+        <Stack.Screen
+          name="extras/flashcards"
+          options={{
+            headerShown: true,
+            headerTitle: 'Flashcards',
+            headerStyle: { backgroundColor: COLORS.background },
+            headerTintColor: COLORS.text,
+            presentation: 'card',
+          }}
+        />
+        <Stack.Screen
+          name="extras/manholes"
+          options={{
+            headerShown: true,
+            headerTitle: 'Manhole Covers',
+            headerStyle: { backgroundColor: COLORS.background },
+            headerTintColor: COLORS.text,
+            presentation: 'card',
+          }}
+        />
+        <Stack.Screen
+          name="extras/badges"
+          options={{
+            headerShown: true,
+            headerTitle: 'Badges',
+            headerStyle: { backgroundColor: COLORS.background },
+            headerTintColor: COLORS.text,
+            presentation: 'card',
+          }}
+        />
+        <Stack.Screen
+          name="extras/persona"
+          options={{
+            headerShown: true,
+            headerTitle: 'Narrator Voice',
+            headerStyle: { backgroundColor: COLORS.background },
+            headerTintColor: COLORS.text,
+            presentation: 'card',
+          }}
+        />
+        <Stack.Screen
+          name="extras/past-trips"
+          options={{
+            headerShown: true,
+            headerTitle: 'Trip History',
+            headerStyle: { backgroundColor: COLORS.background },
+            headerTintColor: COLORS.text,
+            presentation: 'card',
+          }}
+        />
       </Stack>
     </GestureHandlerRootView>
   );

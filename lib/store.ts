@@ -4,6 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { format } from 'date-fns';
 import { TripConfig, Entry, DayLog } from './types';
 import { GoshuinStamp } from './goshuin';
+import { ManholeEntry } from './manholes';
 
 interface JournalState {
   config: TripConfig | null;
@@ -11,6 +12,10 @@ interface JournalState {
   epilogue: string | null;
   goshuinStamps: GoshuinStamp[];
   konbiniChecked: string[];
+  manholeCovers: ManholeEntry[];
+  narratorPersona: string;
+  pastTrips: { name: string; config: TripConfig; days: Record<string, DayLog>; epilogue: string | null }[];
+  anniversaryScheduled: boolean;
 
   setConfig: (config: TripConfig) => void;
   addEntry: (entry: Entry) => void;
@@ -23,6 +28,11 @@ interface JournalState {
   addGoshuinStamp: (stamp: GoshuinStamp) => void;
   deleteGoshuinStamp: (id: string) => void;
   toggleKonbini: (item: string) => void;
+  addManhole: (entry: ManholeEntry) => void;
+  deleteManhole: (id: string) => void;
+  setNarratorPersona: (persona: string) => void;
+  archiveTrip: () => void;
+  setAnniversaryScheduled: (val: boolean) => void;
   getDayLog: (date: string) => DayLog;
   getChapterNumber: (date: string) => number;
   getTodayDate: () => string;
@@ -41,6 +51,10 @@ export const useJournalStore = create<JournalState>()(
       epilogue: null,
       goshuinStamps: [],
       konbiniChecked: [],
+      manholeCovers: [],
+      narratorPersona: 'ghibli',
+      pastTrips: [],
+      anniversaryScheduled: false,
 
       setConfig: (config) => set({ config }),
 
@@ -138,6 +152,41 @@ export const useJournalStore = create<JournalState>()(
             ? state.konbiniChecked.filter((i) => i !== item)
             : [...state.konbiniChecked, item],
         })),
+
+      addManhole: (entry) =>
+        set((state) => ({
+          manholeCovers: [...state.manholeCovers, entry],
+        })),
+
+      deleteManhole: (id) =>
+        set((state) => ({
+          manholeCovers: state.manholeCovers.filter((m) => m.id !== id),
+        })),
+
+      setNarratorPersona: (persona) => set({ narratorPersona: persona }),
+
+      archiveTrip: () =>
+        set((state) => {
+          if (!state.config) return {};
+          const archived = {
+            name: `${state.config.myName} — ${state.config.startDate}`,
+            config: state.config,
+            days: state.days,
+            epilogue: state.epilogue,
+          };
+          return {
+            pastTrips: [...state.pastTrips, archived],
+            config: null,
+            days: {},
+            epilogue: null,
+            goshuinStamps: [],
+            konbiniChecked: [],
+            manholeCovers: [],
+            anniversaryScheduled: false,
+          };
+        }),
+
+      setAnniversaryScheduled: (val) => set({ anniversaryScheduled: val }),
 
       getDayLog: (date) => {
         const state = get();

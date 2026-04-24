@@ -1,9 +1,11 @@
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import { useState } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useJournalStore } from '../../lib/store';
 import { COLORS, CATEGORY_CONFIG, getTravelerColor } from '../../lib/constants';
 import { formatYenWithUsd } from '../../lib/currency';
 import { EntryCategory, Entry } from '../../lib/types';
+import { scheduleAnniversaryNotifications } from '../../lib/anniversary';
 
 export default function StatsScreen() {
   const router = useRouter();
@@ -11,6 +13,28 @@ export default function StatsScreen() {
   const days = useJournalStore((s) => s.days);
   const goshuinCount = useJournalStore((s) => s.goshuinStamps.length);
   const konbiniCount = useJournalStore((s) => s.konbiniChecked.length);
+  const manholeCount = useJournalStore((s) => s.manholeCovers.length);
+  const anniversaryScheduled = useJournalStore((s) => s.anniversaryScheduled);
+  const setAnniversaryScheduled = useJournalStore((s) => s.setAnniversaryScheduled);
+  const persona = useJournalStore((s) => s.narratorPersona);
+  const pastTripsCount = useJournalStore((s) => s.pastTrips.length);
+
+  const handleAnniversary = async () => {
+    const travelers = [config.myName, ...config.partners];
+    const count = await scheduleAnniversaryNotifications(days, travelers);
+    if (count > 0) {
+      setAnniversaryScheduled(true);
+      Alert.alert(
+        '🌸 Anniversary Mode On',
+        `Scheduled ${count} notifications — one year from each day's chapter.`
+      );
+    } else {
+      Alert.alert(
+        'No chapters yet',
+        'Write some chapters first, then come back to schedule anniversary reminders.'
+      );
+    }
+  };
 
   if (!config) return null;
 
@@ -83,7 +107,7 @@ export default function StatsScreen() {
       )}
 
       <View style={styles.extrasSection}>
-        <Text style={styles.sectionTitle}>Extras</Text>
+        <Text style={styles.sectionTitle}>Collections</Text>
         <View style={styles.extrasRow}>
           <TouchableOpacity
             style={styles.extrasButton}
@@ -102,6 +126,76 @@ export default function StatsScreen() {
             <Text style={styles.extrasCount}>{konbiniCount}/25</Text>
           </TouchableOpacity>
         </View>
+        <View style={styles.extrasRow}>
+          <TouchableOpacity
+            style={styles.extrasButton}
+            onPress={() => router.push('/extras/manholes')}
+          >
+            <Text style={styles.extrasIcon}>🔵</Text>
+            <Text style={styles.extrasLabel}>Manholes</Text>
+            <Text style={styles.extrasCount}>{manholeCount}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.extrasButton}
+            onPress={() => router.push('/extras/badges')}
+          >
+            <Text style={styles.extrasIcon}>🎰</Text>
+            <Text style={styles.extrasLabel}>Badges</Text>
+            <Text style={styles.extrasCount}>Gacha!</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      <View style={styles.extrasSection}>
+        <Text style={styles.sectionTitle}>Tools</Text>
+        <View style={styles.extrasRow}>
+          <TouchableOpacity
+            style={styles.extrasButton}
+            onPress={() => router.push('/extras/postcard')}
+          >
+            <Text style={styles.extrasIcon}>📬</Text>
+            <Text style={styles.extrasLabel}>Postcards</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.extrasButton}
+            onPress={() => router.push('/extras/flashcards')}
+          >
+            <Text style={styles.extrasIcon}>🧠</Text>
+            <Text style={styles.extrasLabel}>Flashcards</Text>
+          </TouchableOpacity>
+        </View>
+        <View style={styles.extrasRow}>
+          <TouchableOpacity
+            style={styles.extrasButton}
+            onPress={() => router.push('/extras/persona')}
+          >
+            <Text style={styles.extrasIcon}>🎭</Text>
+            <Text style={styles.extrasLabel}>Narrator</Text>
+            <Text style={styles.extrasCount}>{persona === 'ghibli' ? 'Ghibli' : '✓'}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.extrasButton}
+            onPress={() => router.push('/extras/past-trips')}
+          >
+            <Text style={styles.extrasIcon}>🗾</Text>
+            <Text style={styles.extrasLabel}>Trips</Text>
+            <Text style={styles.extrasCount}>{pastTripsCount} past</Text>
+          </TouchableOpacity>
+        </View>
+        <TouchableOpacity
+          style={[
+            styles.anniversaryButton,
+            anniversaryScheduled && styles.anniversaryDone,
+          ]}
+          onPress={handleAnniversary}
+          disabled={anniversaryScheduled}
+        >
+          <Text style={styles.anniversaryText}>
+            {anniversaryScheduled
+              ? '🌸 Anniversary notifications scheduled!'
+              : '🌸 Enable Anniversary Reminders'}
+          </Text>
+        </TouchableOpacity>
       </View>
 
       {sortedCategories.length > 0 && (
@@ -305,5 +399,23 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: COLORS.textLight,
     marginTop: 2,
+  },
+  anniversaryButton: {
+    backgroundColor: COLORS.white,
+    borderRadius: 14,
+    padding: 14,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.pink,
+    marginTop: 8,
+  },
+  anniversaryDone: {
+    backgroundColor: COLORS.pink + '15',
+    borderColor: COLORS.pink + '40',
+  },
+  anniversaryText: {
+    fontFamily: 'Nunito_600SemiBold',
+    fontSize: 14,
+    color: COLORS.pink,
   },
 });
