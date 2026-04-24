@@ -26,7 +26,8 @@ export interface Entry {
   location?: string;
   amountYen?: number;
   mood?: string;
-  together?: boolean;
+  together?: boolean; // deprecated — use participants
+  participants?: string[];
   photoUri?: string;
   audioUri?: string;
 }

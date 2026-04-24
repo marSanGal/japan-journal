@@ -1,17 +1,13 @@
 import { Tabs } from 'expo-router';
-import { Text, View, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS } from '../../lib/constants';
 
-function TabIcon({ icon, label, focused }: { icon: string; label: string; focused: boolean }) {
-  return (
-    <View style={[styles.tab, focused && styles.tabActive]}>
-      <Text style={styles.icon}>{icon}</Text>
-      <Text style={[styles.label, focused && styles.labelActive]}>{label}</Text>
-    </View>
-  );
-}
-
 export default function TabLayout() {
+  const insets = useSafeAreaInsets();
+  const bottomPad = Math.max(insets.bottom, 12);
+
   return (
     <Tabs
       screenOptions={{
@@ -20,42 +16,48 @@ export default function TabLayout() {
           backgroundColor: COLORS.white,
           borderTopColor: COLORS.border,
           borderTopWidth: 1,
-          height: 72,
-          paddingTop: 8,
-          paddingBottom: 12,
+          height: 60 + bottomPad,
+          paddingTop: 6,
+          paddingBottom: bottomPad,
         },
-        tabBarShowLabel: false,
+        tabBarActiveTintColor: COLORS.pink,
+        tabBarInactiveTintColor: COLORS.textLight,
+        tabBarLabelStyle: styles.label,
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
-          tabBarIcon: ({ focused }) => (
-            <TabIcon icon="🏠" label="Today" focused={focused} />
+          tabBarLabel: 'Today',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="home-outline" size={size} color={color} />
           ),
         }}
       />
       <Tabs.Screen
         name="book"
         options={{
-          tabBarIcon: ({ focused }) => (
-            <TabIcon icon="📖" label="Book" focused={focused} />
+          tabBarLabel: 'Book',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="book-outline" size={size} color={color} />
           ),
         }}
       />
       <Tabs.Screen
         name="map"
         options={{
-          tabBarIcon: ({ focused }) => (
-            <TabIcon icon="🗾" label="Map" focused={focused} />
+          tabBarLabel: 'Map',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="map-outline" size={size} color={color} />
           ),
         }}
       />
       <Tabs.Screen
         name="stats"
         options={{
-          tabBarIcon: ({ focused }) => (
-            <TabIcon icon="⭐" label="Stats" focused={focused} />
+          tabBarLabel: 'Stats',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="star-outline" size={size} color={color} />
           ),
         }}
       />
@@ -64,26 +66,8 @@ export default function TabLayout() {
 }
 
 const styles = StyleSheet.create({
-  tab: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 4,
-    borderRadius: 16,
-  },
-  tabActive: {
-    backgroundColor: COLORS.background,
-  },
-  icon: {
-    fontSize: 22,
-    marginBottom: 2,
-  },
   label: {
     fontFamily: 'Nunito_600SemiBold',
     fontSize: 11,
-    color: COLORS.textLight,
-  },
-  labelActive: {
-    color: COLORS.pink,
   },
 });

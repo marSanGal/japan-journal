@@ -39,24 +39,8 @@ export default function AudioRecorder({ audioUri, onRecorded, onClear }: Props) 
       setIsRecording(true);
       setSeconds(0);
 
-      const recRef = newRecording;
       timerRef.current = setInterval(() => {
-        setSeconds((s) => {
-          if (s >= 9) {
-            if (timerRef.current) clearInterval(timerRef.current);
-            recRef.stopAndUnloadAsync().then(() => {
-              const uri = recRef.getURI();
-              setRecording(null);
-              setIsRecording(false);
-              if (uri) onRecorded(uri);
-            }).catch(() => {
-              setRecording(null);
-              setIsRecording(false);
-            });
-            return 10;
-          }
-          return s + 1;
-        });
+        setSeconds((s) => s + 1);
       }, 1000);
     } catch (err) {
       console.error('Failed to start recording', err);
@@ -120,7 +104,7 @@ export default function AudioRecorder({ audioUri, onRecorded, onClear }: Props) 
       >
         <Text style={styles.recordIcon}>{isRecording ? '⏹️' : '🎙️'}</Text>
         <Text style={styles.recordText}>
-          {isRecording ? `Recording... ${seconds}s / 10s` : 'Record sound (10s)'}
+          {isRecording ? `Recording... ${seconds}s` : 'Record sound'}
         </Text>
       </TouchableOpacity>
     </View>

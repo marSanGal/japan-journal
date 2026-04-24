@@ -6,11 +6,14 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
+  Modal,
+  Pressable,
 } from 'react-native';
 import { router } from 'expo-router';
 import BottomSheet from '@gorhom/bottom-sheet';
 import { format } from 'date-fns';
 import { useJournalStore } from '../../lib/store';
+import { Entry } from '../../lib/types';
 import { COLORS, WEATHER_OPTIONS } from '../../lib/constants';
 import DayHeader from '../../components/DayHeader';
 import EntryCard from '../../components/EntryCard';
@@ -29,19 +32,14 @@ export default function TodayScreen() {
 
   const sheetRef = useRef<BottomSheet>(null);
   const [syncVisible, setSyncVisible] = useState(false);
+  const [weatherModalVisible, setWeatherModalVisible] = useState(false);
+  const [editingEntry, setEditingEntry] = useState<Entry | null>(null);
 
   const entries = dayLog?.entries || [];
 
   const handleWeatherPress = useCallback(() => {
-    Alert.alert(
-      'Weather today?',
-      undefined,
-      WEATHER_OPTIONS.map((w) => ({
-        text: `${w.icon} ${w.label}`,
-        onPress: () => setWeather(today, w.label),
-      }))
-    );
-  }, [today, setWeather]);
+    setWeatherModalVisible(true);
+  }, []);
 
   const handleDeleteEntry = useCallback(
     (entryId: string) => {
@@ -82,6 +80,10 @@ export default function TodayScreen() {
         renderItem={({ item }) => (
           <EntryCard
             entry={item}
+            onPress={() => {
+              setEditingEntry(item);
+              sheetRef.current?.snapToIndex(1);
+            }}
             onLongPress={() => handleDeleteEntry(item.id)}
           />
         )}
@@ -123,12 +125,42 @@ export default function TodayScreen() {
       />
 
       <FAB onPress={() => sheetRef.current?.snapToIndex(0)} />
-      <AddEntrySheet sheetRef={sheetRef} />
+      <AddEntrySheet
+        sheetRef={sheetRef}
+        editingEntry={editingEntry}
+        onEditDone={() => setEditingEntry(null)}
+      />
       <SyncPanel
         date={today}
         visible={syncVisible}
         onClose={() => setSyncVisible(false)}
       />
+
+      <Modal
+        visible={weatherModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setWeatherModalVisible(false)}
+      >
+        <Pressable style={styles.modalOverlay} onPress={() => setWeatherModalVisible(false)}>
+          <View style={styles.weatherModal}>
+            <Text style={styles.weatherModalTitle}>Weather today?</Text>
+            {WEATHER_OPTIONS.map((w) => (
+              <TouchableOpacity
+                key={w.label}
+                style={styles.weatherOption}
+                onPress={() => {
+                  setWeather(today, w.label);
+                  setWeatherModalVisible(false);
+                }}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.weatherOptionText}>{w.icon} {w.label}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </Pressable>
+      </Modal>
     </View>
   );
 }
@@ -185,5 +217,38 @@ const styles = StyleSheet.create({
     fontFamily: 'Nunito_700Bold',
     fontSize: 16,
     color: COLORS.white,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  weatherModal: {
+    backgroundColor: COLORS.white,
+    borderRadius: 20,
+    padding: 20,
+    width: '80%',
+    maxWidth: 320,
+  },
+  weatherModalTitle: {
+    fontFamily: 'Nunito_700Bold',
+    fontSize: 18,
+    color: COLORS.text,
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  weatherOption: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    backgroundColor: COLORS.background,
+    marginBottom: 8,
+  },
+  weatherOptionText: {
+    fontFamily: 'Nunito_600SemiBold',
+    fontSize: 16,
+    color: COLORS.text,
+    textAlign: 'center',
   },
 });

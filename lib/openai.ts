@@ -21,10 +21,15 @@ const formatEntries = (entries: Entry[]): string => {
         hour12: true,
       });
       const cat = CATEGORY_CONFIG[e.category].label;
-      const together = e.together ? ' [together]' : ' [solo]';
+      let withTag: string;
+      if (e.participants && e.participants.length > 1) {
+        withTag = ` [with: ${e.participants.join(', ')}]`;
+      } else {
+        withTag = ' [solo]';
+      }
       const location = e.location ? ` @ ${e.location}` : '';
       const yen = e.amountYen ? ` (¥${e.amountYen})` : '';
-      return `[${time}] ${e.author} — ${cat}${together}${location}${yen}: ${e.text}`;
+      return `[${time}] ${e.author} — ${cat}${withTag}${location}${yen}: ${e.text}`;
     })
     .join('\n');
 };
@@ -44,7 +49,9 @@ Their name is ${name}. This is Chapter ${chapterNumber} of their journey.
 ${persona.prompt}
 
 You will receive a chronological list of log entries from the traveler's day. Each
-entry has a timestamp and what they experienced.
+entry has a timestamp and what they experienced. This is the COMPLETE list — never
+ask for more information, clarification, or additional entries. Work with whatever
+entries you receive, even if there is only one.
 
 Write a single chapter (3-5 paragraphs) in third person, like a chapter of a novel:
 
@@ -55,7 +62,8 @@ Write a single chapter (3-5 paragraphs) in third person, like a chapter of a nov
   the story, never as a list
 - End the chapter with an image — the last moment of the day, a quiet scene, a
   feeling — not a summary or conclusion
-- Title the chapter on the first line: "Chapter ${chapterNumber} — {a short evocative title based on the day}"`;
+- Title the chapter on the first line: "Chapter ${chapterNumber} — {a short evocative title based on the day}"
+- IMPORTANT: Never ask for more entries. Never say the list is incomplete. Just write the chapter.`;
   }
 
   const nameList = travelers.join(', ');
@@ -67,9 +75,12 @@ Their names are ${nameList}. This is Chapter ${chapterNumber} of their journey.
 ${persona.prompt}
 
 You will receive a chronological list of log entries from all travelers' day. Each
-entry has a timestamp, the author's name, and what they experienced. Some entries
-are marked "together" (they were side by side) and some are "solo" (they split up
-and explored alone).
+entry has a timestamp, the author's name, and what they experienced. Entries include
+a list of participants (e.g. "[with: Mario, Carlos]" means they were together, while
+"[solo]" means the author was alone).
+
+This is the COMPLETE list — never ask for more information, clarification, or
+additional entries. Work with whatever entries you receive, even if there is only one.
 
 Write a single chapter (3-5 paragraphs) in third person, like a chapter of a novel:
 
@@ -84,8 +95,9 @@ Write a single chapter (3-5 paragraphs) in third person, like a chapter of a nov
   the story, never as a list
 - End the chapter with an image — the last moment of the day, a quiet scene, a
   feeling — not a summary or conclusion
-- Title the chapter on the first line: "Chapter ${chapterNumber} — {a short evocative title based on the day}"`;
-};
+- Title the chapter on the first line: "Chapter ${chapterNumber} — {a short evocative title based on the day}"
+- IMPORTANT: Never ask for more entries. Never say the list is incomplete. Just write the chapter.`;
+  };
 
 export const generateChapter = async (
   entries: Entry[],
@@ -106,7 +118,7 @@ export const generateChapter = async (
     model: 'gpt-4o',
     messages: [
       { role: 'system', content: systemPrompt },
-      { role: 'user', content: `Here are today's entries:${weatherNote}\n\n${entriesText}` },
+      { role: 'user', content: `Here are ALL of today's log entries (this is the complete list):${weatherNote}\n\n${entriesText}` },
     ],
     temperature: 0.85,
     max_tokens: 1500,

@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, Image, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, Image, StyleSheet, Linking } from 'react-native';
 import { format } from 'date-fns';
 import { Entry } from '../lib/types';
 import { CATEGORY_CONFIG, COLORS, getTravelerColor } from '../lib/constants';
@@ -9,9 +9,10 @@ import AudioPlayer from './AudioPlayer';
 interface Props {
   entry: Entry;
   onLongPress?: () => void;
+  onPress?: () => void;
 }
 
-export default function EntryCard({ entry, onLongPress }: Props) {
+export default function EntryCard({ entry, onLongPress, onPress }: Props) {
   const config = useJournalStore((s) => s.config);
   const catConfig = CATEGORY_CONFIG[entry.category];
   const time = format(new Date(entry.timestamp), 'h:mm a');
@@ -21,6 +22,7 @@ export default function EntryCard({ entry, onLongPress }: Props) {
   return (
     <TouchableOpacity
       style={styles.container}
+      onPress={onPress}
       onLongPress={onLongPress}
       activeOpacity={0.8}
       delayLongPress={500}
@@ -37,9 +39,16 @@ export default function EntryCard({ entry, onLongPress }: Props) {
                 <Text style={[styles.author, { color: authorColor }]}>
                   {entry.author}
                 </Text>
-                {entry.together && (
-                  <View style={styles.togetherBadge}>
-                    <Text style={styles.togetherText}>together</Text>
+                {entry.participants && entry.participants.length > 1 && (
+                  <View style={styles.participantsBadge}>
+                    <Text style={styles.participantsText}>
+                      {entry.participants.join(', ')}
+                    </Text>
+                  </View>
+                )}
+                {!entry.participants && entry.together && (
+                  <View style={styles.participantsBadge}>
+                    <Text style={styles.participantsText}>together</Text>
                   </View>
                 )}
               </View>
@@ -49,7 +58,17 @@ export default function EntryCard({ entry, onLongPress }: Props) {
         </View>
         <Text style={styles.text}>{entry.text}</Text>
         {entry.location && (
-          <Text style={styles.location}>📍 {entry.location}</Text>
+          <View onStartShouldSetResponder={() => true}>
+            <TouchableOpacity
+              onPress={() => {
+                const query = encodeURIComponent(`${entry.location}, Japan`);
+                Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${query}`);
+              }}
+              activeOpacity={0.6}
+            >
+              <Text style={styles.location}>📍 {entry.location}</Text>
+            </TouchableOpacity>
+          </View>
         )}
         {entry.amountYen && (
           <Text style={styles.amount}>{formatYen(entry.amountYen)}</Text>
@@ -121,13 +140,13 @@ const styles = StyleSheet.create({
     fontFamily: 'Nunito_600SemiBold',
     fontSize: 12,
   },
-  togetherBadge: {
+  participantsBadge: {
     backgroundColor: COLORS.green,
     paddingHorizontal: 6,
     paddingVertical: 1,
     borderRadius: 8,
   },
-  togetherText: {
+  participantsText: {
     fontFamily: 'Nunito_400Regular',
     fontSize: 10,
     color: COLORS.white,
@@ -145,10 +164,11 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   location: {
-    fontFamily: 'Nunito_400Regular',
+    fontFamily: 'Nunito_600SemiBold',
     fontSize: 12,
-    color: COLORS.textLight,
+    color: COLORS.blue,
     marginTop: 4,
+    textDecorationLine: 'underline',
   },
   amount: {
     fontFamily: 'Nunito_600SemiBold',

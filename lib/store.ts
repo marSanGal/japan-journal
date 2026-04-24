@@ -19,6 +19,7 @@ interface JournalState {
 
   setConfig: (config: TripConfig) => void;
   addEntry: (entry: Entry) => void;
+  updateEntry: (date: string, entryId: string, updates: Partial<Entry>) => void;
   deleteEntry: (date: string, entryId: string) => void;
   importPartnerEntries: (entries: Entry[]) => number;
   setWeather: (date: string, weather: string) => void;
@@ -64,6 +65,23 @@ export const useJournalStore = create<JournalState>()(
           const day = ensureDay(state.days, date);
           const entries = [...day.entries, entry].sort(
             (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+          );
+          const totalSpendYen = entries
+            .filter((e) => e.category === 'purchase' && e.amountYen)
+            .reduce((sum, e) => sum + (e.amountYen || 0), 0);
+          return {
+            days: {
+              ...state.days,
+              [date]: { ...day, entries, totalSpendYen },
+            },
+          };
+        }),
+
+      updateEntry: (date, entryId, updates) =>
+        set((state) => {
+          const day = ensureDay(state.days, date);
+          const entries = day.entries.map((e) =>
+            e.id === entryId ? { ...e, ...updates } : e
           );
           const totalSpendYen = entries
             .filter((e) => e.category === 'purchase' && e.amountYen)

@@ -19,7 +19,8 @@
         "backgroundColor": "#FFF0F5"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.japanjournal.app"
+      "package": "com.japanjournal.app",
+      "softwareKeyboardLayoutMode": "pan"
     },
     "plugins": [
       "expo-router"
