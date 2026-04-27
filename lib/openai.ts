@@ -29,7 +29,50 @@ const formatEntries = (entries: Entry[]): string => {
       }
       const location = e.location ? ` @ ${e.location}` : '';
       const yen = e.amountYen ? ` (¥${e.amountYen})` : '';
-      return `[${time}] ${e.author} — ${cat}${withTag}${location}${yen}: ${e.text}`;
+
+      let line = `[${time}] ${e.author} — ${cat}${withTag}${location}${yen}: ${e.text}`;
+
+      if (e.dishes && e.dishes.length > 0) {
+        const dishLines = e.dishes.map((d) => {
+          let s = `  - Dish: ${d.name}`;
+          if (d.rating) s += ` (${'★'.repeat(d.rating)}${'☆'.repeat(5 - d.rating)})`;
+          if (d.comment) s += ` — "${d.comment}"`;
+          return s;
+        });
+        line += '\n' + dishLines.join('\n');
+      }
+
+      if (e.trainInfo) {
+        line += `\n  - Train: ${e.trainInfo.fromStation} → ${e.trainInfo.toStation} (${e.trainInfo.type})`;
+      }
+
+      if (e.barGenre) {
+        line += `\n  - Genre: ${e.barGenre}`;
+      }
+      if (e.hadLiveMusic) {
+        line += '\n  - Live music!';
+      }
+
+      if (e.songs && e.songs.length > 0) {
+        const songLines = e.songs.map((s) =>
+          `  - Song: "${s.name}"${s.artist ? ` by ${s.artist}` : ''}`
+        );
+        line += '\n' + songLines.join('\n');
+      }
+
+      if (e.stepsCount) {
+        line += `\n  - Steps: ${e.stepsCount.toLocaleString()}`;
+      }
+
+      if (e.hasGoshuin) {
+        line += '\n  - Collected a goshuin (temple stamp)';
+      }
+
+      if (e.engrishContext) {
+        line += `\n  - Context: "${e.engrishContext}"`;
+      }
+
+      return line;
     })
     .join('\n');
 };
