@@ -34,12 +34,20 @@ const formatEntries = (entries: Entry[]): string => {
     .join('\n');
 };
 
+const getParagraphGuide = (entryCount: number): string => {
+  if (entryCount <= 3) return '1-2 short paragraphs';
+  if (entryCount <= 7) return '2-3 paragraphs';
+  return '3-5 paragraphs';
+};
+
 const buildPrompt = (
   travelers: string[],
   chapterNumber: number,
+  entryCount: number,
   personaId = 'ghibli'
 ): string => {
   const persona = getPersona(personaId);
+  const paragraphs = getParagraphGuide(entryCount);
 
   if (travelers.length === 1) {
     const name = travelers[0];
@@ -47,14 +55,19 @@ const buildPrompt = (
 Their name is ${name}. This is Chapter ${chapterNumber} of their journey.
 
 ${persona.prompt}
+Use the persona's tone, but stay faithful to what was logged — do not invent facts.
 
 You will receive a chronological list of log entries from the traveler's day. Each
 entry has a timestamp and what they experienced. This is the COMPLETE list — never
 ask for more information, clarification, or additional entries. Work with whatever
 entries you receive, even if there is only one.
 
-Write a single chapter (3-5 paragraphs) in third person, like a chapter of a novel:
+Write a single chapter (${paragraphs}) in third person, like a chapter of a novel:
 
+- You MUST include every single entry from the log — do not skip any
+- Stay faithful to what was actually logged. Do not invent events, places, meals, or
+  details that are not in the entries. A little atmospheric colour is fine, but the
+  facts must come from the log
 - Follow the chronological flow of the day — morning to night
 - Narrate ${name} as the protagonist on a quiet adventure
 - Give them personality through what they notice and do
@@ -73,6 +86,7 @@ Write a single chapter (3-5 paragraphs) in third person, like a chapter of a nov
 Their names are ${nameList}. This is Chapter ${chapterNumber} of their journey.
 
 ${persona.prompt}
+Use the persona's tone, but stay faithful to what was logged — do not invent facts.
 
 You will receive a chronological list of log entries from all travelers' day. Each
 entry has a timestamp, the author's name, and what they experienced. Entries include
@@ -82,8 +96,12 @@ a list of participants (e.g. "[with: Mario, Carlos]" means they were together, w
 This is the COMPLETE list — never ask for more information, clarification, or
 additional entries. Work with whatever entries you receive, even if there is only one.
 
-Write a single chapter (3-5 paragraphs) in third person, like a chapter of a novel:
+Write a single chapter (${paragraphs}) in third person, like a chapter of a novel:
 
+- You MUST include every single entry from the log — do not skip any
+- Stay faithful to what was actually logged. Do not invent events, places, meals, or
+  details that are not in the entries. A little atmospheric colour is fine, but the
+  facts must come from the log
 - Follow the chronological flow of the day — morning to night
 - When they are together, narrate them as a group: "They wandered through...",
   "${nameExamples[0]} pointed out... while ${nameExamples[1]} stopped to..."
@@ -112,7 +130,8 @@ export const generateChapter = async (
   );
   const entriesText = formatEntries(sorted);
   const weatherNote = weather ? `\nToday's weather: ${weather}` : '';
-  const systemPrompt = buildPrompt(travelers, chapterNumber, personaId);
+  const systemPrompt = buildPrompt(travelers, chapterNumber, sorted.length, personaId);
+  const maxTokens = Math.min(600 + sorted.length * 150, 2500);
 
   const response = await client.chat.completions.create({
     model: 'gpt-4o',
@@ -120,8 +139,8 @@ export const generateChapter = async (
       { role: 'system', content: systemPrompt },
       { role: 'user', content: `Here are ALL of today's log entries (this is the complete list):${weatherNote}\n\n${entriesText}` },
     ],
-    temperature: 0.85,
-    max_tokens: 1500,
+    temperature: 0.6,
+    max_tokens: maxTokens,
   });
 
   return response.choices[0]?.message?.content || 'Could not generate chapter.';
