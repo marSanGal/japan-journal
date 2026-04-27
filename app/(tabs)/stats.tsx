@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, useWindowDimensions } from 'react-native';
 import { useRouter } from 'expo-router';
 import { format } from 'date-fns';
 import { useJournalStore } from '../../lib/store';
@@ -16,6 +16,9 @@ export default function StatsScreen() {
   const ekiStampCount = useJournalStore((s) => s.ekiStamps.length);
   const persona = useJournalStore((s) => s.narratorPersona);
   const pastTripsCount = useJournalStore((s) => s.pastTrips.length);
+
+  const { width: screenWidth } = useWindowDimensions();
+  const tileWidth = (screenWidth - 32 - 8) / 2;
 
   if (!config) return null;
 
@@ -72,23 +75,11 @@ export default function StatsScreen() {
       </View>
 
       <View style={styles.grid}>
-        <StatBox label="Total Entries" value={totalEntries.toString()} icon="📝" />
-        <StatBox label="Days Logged" value={daysLogged.toString()} icon="📅" />
-        <StatBox
-          label="Chapters Written"
-          value={chaptersWritten.toString()}
-          icon="📖"
-        />
-        <StatBox
-          label="Total Spent"
-          value={totalYen > 0 ? formatYenWithUsd(totalYen) : '¥0'}
-          icon="💴"
-        />
-        <StatBox
-          label="Total Steps"
-          value={totalSteps > 0 ? totalSteps.toLocaleString() : '0'}
-          icon="👣"
-        />
+        <StatBox label="Total Entries" value={totalEntries.toString()} icon="📝" width={tileWidth} />
+        <StatBox label="Days Logged" value={daysLogged.toString()} icon="📅" width={tileWidth} />
+        <StatBox label="Chapters" value={chaptersWritten.toString()} icon="📖" width={tileWidth} />
+        <StatBox label="Total Spent" value={totalYen > 0 ? formatYenWithUsd(totalYen) : '¥0'} icon="💴" width={tileWidth} />
+        <StatBox label="Total Steps" value={totalSteps > 0 ? totalSteps.toLocaleString() : '0'} icon="👣" width={tileWidth} />
       </View>
 
       {loggedDays.length > 0 && (
@@ -257,17 +248,17 @@ function StatBox({
   label,
   value,
   icon,
-  wide,
+  width,
 }: {
   label: string;
   value: string;
   icon: string;
-  wide?: boolean;
+  width: number;
 }) {
   return (
-    <View style={[styles.statBox, wide && styles.statBoxWide]}>
+    <View style={[styles.statBox, { width }]}>
       <Text style={styles.statIcon}>{icon}</Text>
-      <Text style={styles.statValue}>{value}</Text>
+      <Text style={styles.statValue} numberOfLines={1} adjustsFontSizeToFit>{value}</Text>
       <Text style={styles.statLabel}>{label}</Text>
     </View>
   );
@@ -300,16 +291,14 @@ const styles = StyleSheet.create({
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 10,
+    gap: 8,
     paddingHorizontal: 16,
-    marginBottom: 24,
+    marginBottom: 20,
   },
   statBox: {
-    flex: 1,
-    minWidth: '45%',
     backgroundColor: COLORS.white,
-    borderRadius: 16,
-    padding: 16,
+    borderRadius: 12,
+    padding: 10,
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
@@ -317,22 +306,19 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 1,
   },
-  statBoxWide: {
-    minWidth: '95%',
-  },
   statIcon: {
-    fontSize: 24,
-    marginBottom: 6,
+    fontSize: 18,
+    marginBottom: 4,
   },
   statValue: {
     fontFamily: 'Nunito_700Bold',
-    fontSize: 20,
+    fontSize: 16,
     color: COLORS.text,
-    marginBottom: 2,
+    marginBottom: 1,
   },
   statLabel: {
     fontFamily: 'Nunito_400Regular',
-    fontSize: 12,
+    fontSize: 11,
     color: COLORS.textLight,
   },
   section: {
