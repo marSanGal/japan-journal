@@ -76,6 +76,15 @@ export const toISODate = (display: string): string => {
   return `${y}-${m}-${d}`;
 };
 
+export function isValidDisplayDate(str: string): boolean {
+  if (!/^\d{2}-\d{2}-\d{4}$/.test(str)) return false;
+  const [d, m, y] = str.split('-').map(Number);
+  if (Number.isNaN(d) || Number.isNaN(m) || Number.isNaN(y)) return false;
+  if (m < 1 || m > 12 || d < 1 || d > 31 || y < 1900 || y > 2100) return false;
+  const test = new Date(y, m - 1, d);
+  return test.getDate() === d && test.getMonth() === m - 1 && test.getFullYear() === y;
+}
+
 export const CUSTOM_COLOR_OPTIONS = [
   '#2C4A5A', '#8B9E5E', '#C53D43', '#7A6B8A',
   '#C4956A', '#4A7A8C', '#C4A84A', '#5A8A7A',

@@ -39,6 +39,7 @@ export default function ChapterScreen() {
     .map((e) => e.photoUri!);
 
   const handleGenerate = async () => {
+    if (loading) return;
     if (entries.length === 0) {
       Alert.alert('No entries yet', 'Add some entries before writing the chapter!');
       return;
@@ -110,15 +111,17 @@ export default function ChapterScreen() {
               </View>
             ) : narrative ? (
               <TouchableOpacity
-                style={styles.rewriteButton}
+                style={[styles.rewriteButton, loading && { opacity: 0.5 }]}
                 onPress={handleRegenerate}
+                disabled={loading}
               >
                 <Text style={styles.rewriteText}>🔄 Rewrite Chapter</Text>
               </TouchableOpacity>
             ) : (
               <TouchableOpacity
-                style={styles.generateButton}
+                style={[styles.generateButton, loading && { opacity: 0.5 }]}
                 onPress={handleGenerate}
+                disabled={loading}
               >
                 <Text style={styles.generateText}>
                   ✨ Write This Chapter

@@ -78,6 +78,7 @@ export interface DayLog {
   extraPhotos?: string[];
   extraMedia?: ExtraMediaItem[];
   ekiStampCount?: number;
+  favoritePhotoUri?: string;
 }
 
 export interface ExtraMediaItem {

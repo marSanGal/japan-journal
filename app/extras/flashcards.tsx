@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Alert,
   ScrollView,
+  ActivityIndicator,
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import * as Sharing from 'expo-sharing';
@@ -25,6 +26,7 @@ export default function FlashcardsScreen() {
   const [mode, setMode] = useState<'memory' | 'phrase'>('memory');
   const [index, setIndex] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
   const memoryCards = useMemo(
     () => (config ? generateFlashcards(days, config.startDate) : []),
@@ -45,6 +47,8 @@ export default function FlashcardsScreen() {
   };
 
   const handleExportAnki = async () => {
+    if (exporting) return;
+    setExporting(true);
     try {
       const content = exportAnkiDeck(phraseCards);
       const path = `${FileSystem.documentDirectory}japan-phrases.txt`;
@@ -52,6 +56,8 @@ export default function FlashcardsScreen() {
       await Sharing.shareAsync(path, { mimeType: 'text/plain' });
     } catch (err: any) {
       Alert.alert('Export failed', err?.message || 'Could not export');
+    } finally {
+      setExporting(false);
     }
   };
 
@@ -147,10 +153,15 @@ export default function FlashcardsScreen() {
 
       {mode === 'phrase' && phraseCards.length > 0 && (
         <TouchableOpacity
-          style={styles.exportButton}
+          style={[styles.exportButton, exporting && { opacity: 0.5 }]}
           onPress={handleExportAnki}
+          disabled={exporting}
         >
-          <Text style={styles.exportText}>📥 Export as Anki Deck</Text>
+          {exporting ? (
+            <ActivityIndicator color={COLORS.purple} size="small" />
+          ) : (
+            <Text style={styles.exportText}>📥 Export as Anki Deck</Text>
+          )}
         </TouchableOpacity>
       )}
     </ScrollView>

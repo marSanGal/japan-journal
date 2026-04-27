@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, useWindowDimensions } from 'react-native';
 import { useRouter } from 'expo-router';
 import { format } from 'date-fns';
@@ -19,58 +20,56 @@ export default function StatsScreen() {
   const { width: screenWidth } = useWindowDimensions();
   const tileWidth = (screenWidth - 32 - 8) / 2;
 
-  if (!config) return null;
+  const stats = useMemo(() => {
+    if (!config) return null;
+    const allNames = [config.myName, ...config.partners];
+    const allEntries: Entry[] = Object.values(days).flatMap((d) => d.entries);
+    const totalEntries = allEntries.length;
+    const entriesByTraveler = allNames.map((name) => ({
+      name,
+      count: allEntries.filter((e) => e.author === name).length,
+    }));
+    const totalYen = allEntries
+      .filter((e) => e.amountYen)
+      .reduce((sum, e) => sum + (e.amountYen || 0), 0);
+    const chaptersWritten = Object.values(days).filter((d) => d.narrative).length;
+    const daysLogged = Object.values(days).filter((d) => d.entries.length > 0).length;
+    const totalSteps = allEntries
+      .filter((e) => e.stepsCount)
+      .reduce((sum, e) => sum + (e.stepsCount || 0), 0);
+    const totalEkiStamps = Object.values(days).reduce(
+      (sum, d) => sum + (d.ekiStampCount || 0), 0
+    );
 
-  const allNames = [config.myName, ...config.partners];
-  const allEntries: Entry[] = Object.values(days).flatMap((d) => d.entries);
-  const totalEntries = allEntries.length;
-  const entriesByTraveler = allNames.map((name) => ({
-    name,
-    count: allEntries.filter((e) => e.author === name).length,
-  }));
-  const totalYen = allEntries
-    .filter((e) => e.amountYen)
-    .reduce((sum, e) => sum + (e.amountYen || 0), 0);
-  const chaptersWritten = Object.values(days).filter((d) => d.narrative).length;
-  const daysLogged = Object.values(days).filter((d) => d.entries.length > 0).length;
-  const totalSteps = allEntries
-    .filter((e) => e.stepsCount)
-    .reduce((sum, e) => sum + (e.stepsCount || 0), 0);
-  const totalEkiStamps = Object.values(days).reduce(
-    (sum, d) => sum + (d.ekiStampCount || 0), 0
-  );
+    const loggedDays = Object.entries(days)
+      .filter(([, d]) => d.entries.length > 0)
+      .map(([dateStr, d]) => {
+        const start = new Date(config.startDate);
+        const current = new Date(dateStr);
+        const dayNum = Math.floor(
+          (current.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)
+        ) + 1;
+        return {
+          date: dateStr,
+          dayNum,
+          entryCount: d.entries.length,
+          hasNarrative: !!d.narrative,
+        };
+      })
+      .sort((a, b) => a.date.localeCompare(b.date));
 
-  const loggedDays = Object.entries(days)
-    .filter(([, d]) => d.entries.length > 0)
-    .map(([dateStr, d]) => {
-      const start = new Date(config.startDate);
-      const current = new Date(dateStr);
-      const dayNum = Math.floor(
-        (current.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)
-      ) + 1;
-      return {
-        date: dateStr,
-        dayNum,
-        entryCount: d.entries.length,
-        hasNarrative: !!d.narrative,
-      };
-    })
-    .sort((a, b) => a.date.localeCompare(b.date));
+    const categoryCounts: Record<string, number> = {};
+    for (const entry of allEntries) {
+      const key = entry.category === 'custom' && entry.customCategoryId
+        ? `custom:${entry.customCategoryId}`
+        : entry.category;
+      categoryCounts[key] = (categoryCounts[key] || 0) + 1;
+    }
+    const sortedCategories = Object.entries(categoryCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 6);
 
-  const categoryCounts: Record<string, number> = {};
-  for (const entry of allEntries) {
-    const key = entry.category === 'custom' && entry.customCategoryId
-      ? `custom:${entry.customCategoryId}`
-      : entry.category;
-    categoryCounts[key] = (categoryCounts[key] || 0) + 1;
-  }
-  const sortedCategories = Object.entries(categoryCounts)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 6);
-
-  const spendingData = (() => {
-    if (!config) return [];
-    const rows = Object.entries(days)
+    const spendingRows = Object.entries(days)
       .filter(([, d]) => (d.totalSpendYen || 0) > 0)
       .map(([dateStr, d]) => {
         const start = new Date(config.startDate);
@@ -81,12 +80,25 @@ export default function StatsScreen() {
         return { date: dateStr, dayNum, amount: d.totalSpendYen || 0, pct: 0 };
       })
       .sort((a, b) => a.date.localeCompare(b.date));
-    const max = Math.max(...rows.map((r) => r.amount), 1);
-    for (const row of rows) {
+    const max = Math.max(...spendingRows.map((r) => r.amount), 1);
+    for (const row of spendingRows) {
       row.pct = Math.round((row.amount / max) * 100);
     }
-    return rows;
-  })();
+
+    return {
+      allNames, allEntries, totalEntries, entriesByTraveler, totalYen,
+      chaptersWritten, daysLogged, totalSteps, totalEkiStamps,
+      loggedDays, sortedCategories, spendingData: spendingRows,
+    };
+  }, [days, config]);
+
+  if (!stats) return null;
+
+  const {
+    allNames, allEntries, totalEntries, entriesByTraveler, totalYen,
+    chaptersWritten, daysLogged, totalSteps, totalEkiStamps,
+    loggedDays, sortedCategories, spendingData,
+  } = stats;
 
   return (
     <View style={{ flex: 1, backgroundColor: COLORS.background }}>
@@ -328,7 +340,6 @@ function StatBox({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
   },
   scroll: {
     paddingBottom: 100,

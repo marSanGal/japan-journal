@@ -257,7 +257,7 @@ function buildClassicBody(
   dayLog: DayLog, chapterNumber: number, dateLabel: string,
   travelers: string[], customCategories?: CustomCategory[],
 ): string {
-  const photo = pickBestPhoto(dayLog.entries);
+  const photo = dayLog.favoritePhotoUri || pickBestPhoto(dayLog.entries);
   const quote = dayLog.narrative ? pickQuote(dayLog.narrative) : '';
   const names = travelers.join(' & ');
   const entryHighlights = dayLog.entries

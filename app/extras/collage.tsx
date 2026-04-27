@@ -7,6 +7,7 @@ import {
   Image,
   StyleSheet,
   Alert,
+  ActivityIndicator,
   useWindowDimensions,
 } from 'react-native';
 import * as Print from 'expo-print';
@@ -49,14 +50,15 @@ export default function CollageScreen() {
   }, [days, config]);
 
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [sharing, setSharing] = useState(false);
 
   const selectedDay = loggedDays.find((d) => d.date === selectedDate);
   const photos = selectedDay?.photos || [];
   const tileSize = (screenWidth - 48 - 8) / 3;
 
   const handleShare = async () => {
-    if (photos.length === 0) return;
-
+    if (photos.length === 0 || sharing) return;
+    setSharing(true);
     try {
       const imageRows: string[] = [];
       for (let i = 0; i < photos.length; i += 3) {
@@ -95,6 +97,8 @@ export default function CollageScreen() {
       await Sharing.shareAsync(uri);
     } catch {
       Alert.alert('Error', 'Could not generate collage.');
+    } finally {
+      setSharing(false);
     }
   };
 
@@ -134,8 +138,12 @@ export default function CollageScreen() {
               />
             ))}
           </View>
-          <TouchableOpacity style={styles.shareButton} onPress={handleShare}>
-            <Text style={styles.shareText}>📤 Share Collage as PDF</Text>
+          <TouchableOpacity style={[styles.shareButton, sharing && { opacity: 0.5 }]} onPress={handleShare} disabled={sharing}>
+            {sharing ? (
+              <ActivityIndicator color={COLORS.white} size="small" />
+            ) : (
+              <Text style={styles.shareText}>📤 Share Collage as PDF</Text>
+            )}
           </TouchableOpacity>
         </>
       ) : selectedDate ? (

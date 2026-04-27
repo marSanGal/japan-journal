@@ -59,6 +59,7 @@ export default function BookScreen() {
   });
 
   const handleEpilogue = async () => {
+    if (loading) return;
     if (writtenChapters.length < 2) {
       Alert.alert(
         'Not enough chapters',
@@ -164,8 +165,9 @@ export default function BookScreen() {
               </View>
             ) : (
               <TouchableOpacity
-                style={epilogue ? styles.rewriteButton : styles.epilogueButton}
+                style={[epilogue ? styles.rewriteButton : styles.epilogueButton, loading && { opacity: 0.5 }]}
                 onPress={handleEpilogue}
+                disabled={loading}
               >
                 <Text
                   style={

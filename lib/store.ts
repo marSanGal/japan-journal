@@ -41,6 +41,7 @@ interface JournalState {
   removeExtraPhoto: (date: string, uri: string) => void;
   addExtraMedia: (date: string, item: ExtraMediaItem) => void;
   removeExtraMedia: (date: string, uri: string) => void;
+  setFavoritePhoto: (date: string, uri: string | undefined) => void;
   addCustomCategory: (cat: CustomCategory) => void;
   updateCustomCategory: (id: string, updates: Partial<CustomCategory>) => void;
   deleteCustomCategory: (id: string) => void;
@@ -242,6 +243,12 @@ export const useJournalStore = create<JournalState>()(
           const day = ensureDay(state.days, date);
           const media = [...(day.extraMedia || []), item];
           return { days: { ...state.days, [date]: { ...day, extraMedia: media } } };
+        }),
+
+      setFavoritePhoto: (date, uri) =>
+        set((state) => {
+          const day = ensureDay(state.days, date);
+          return { days: { ...state.days, [date]: { ...day, favoritePhotoUri: uri } } };
         }),
 
       removeExtraMedia: (date, uri) =>

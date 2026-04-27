@@ -8,11 +8,12 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Alert,
 } from 'react-native';
 import { router } from 'expo-router';
 import { format } from 'date-fns';
 import { useJournalStore } from '../lib/store';
-import { COLORS, TRAVELER_COLORS, toDisplayDate, toISODate } from '../lib/constants';
+import { COLORS, TRAVELER_COLORS, toDisplayDate, toISODate, isValidDisplayDate } from '../lib/constants';
 
 export default function SetupScreen() {
   const setConfig = useJournalStore((s) => s.setConfig);
@@ -31,7 +32,11 @@ export default function SetupScreen() {
 
   if (existingConfig) return null;
 
-  const canSave = myName.trim() && startDate && endDate;
+  const canSave =
+    myName.trim() &&
+    isValidDisplayDate(startDate) &&
+    isValidDisplayDate(endDate) &&
+    toISODate(startDate) <= toISODate(endDate);
 
   const handleSave = () => {
     if (!canSave) return;
@@ -58,7 +63,11 @@ export default function SetupScreen() {
   };
 
   const removePartner = (index: number) => {
-    setPartners(partners.filter((_, i) => i !== index));
+    const name = partners[index]?.trim() || `Partner ${index + 1}`;
+    Alert.alert('Remove partner?', name, [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Remove', style: 'destructive', onPress: () => setPartners(partners.filter((_, i) => i !== index)) },
+    ]);
   };
 
   return (

@@ -15,7 +15,7 @@ import { File, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import * as DocumentPicker from 'expo-document-picker';
 import { useJournalStore } from '../../lib/store';
-import { COLORS, TRAVELER_COLORS, toDisplayDate, toISODate } from '../../lib/constants';
+import { COLORS, TRAVELER_COLORS, toDisplayDate, toISODate, isValidDisplayDate } from '../../lib/constants';
 import { getPersona } from '../../lib/personas';
 import SeigaihaBackground from '../../components/SeigaihaBackground';
 
@@ -65,9 +65,19 @@ export default function SettingsScreen() {
   };
 
   const removePartner = (index: number) => {
-    const updated = partners.filter((_, i) => i !== index);
-    setPartners(updated);
-    saveField('partners', updated.map((p) => p.trim()).filter(Boolean));
+    const name = partners[index]?.trim() || `Partner ${index + 1}`;
+    Alert.alert('Remove partner?', name, [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Remove',
+        style: 'destructive',
+        onPress: () => {
+          const updated = partners.filter((_, i) => i !== index);
+          setPartners(updated);
+          saveField('partners', updated.map((p) => p.trim()).filter(Boolean));
+        },
+      },
+    ]);
   };
 
   const savePartners = () => {
@@ -212,7 +222,15 @@ export default function SettingsScreen() {
           style={styles.input}
           value={startDate}
           onChangeText={setStartDate}
-          onBlur={() => startDate.trim() && saveField('startDate', toISODate(startDate.trim()))}
+          onBlur={() => {
+            if (!startDate.trim()) return;
+            if (!isValidDisplayDate(startDate.trim())) {
+              Alert.alert('Invalid date', 'Please use DD-MM-YYYY format with a valid date.');
+              setStartDate(toDisplayDate(config.startDate));
+              return;
+            }
+            saveField('startDate', toISODate(startDate.trim()));
+          }}
           placeholder="DD-MM-YYYY"
           placeholderTextColor={COLORS.textLight}
         />
@@ -222,7 +240,15 @@ export default function SettingsScreen() {
           style={styles.input}
           value={endDate}
           onChangeText={setEndDate}
-          onBlur={() => endDate.trim() && saveField('endDate', toISODate(endDate.trim()))}
+          onBlur={() => {
+            if (!endDate.trim()) return;
+            if (!isValidDisplayDate(endDate.trim())) {
+              Alert.alert('Invalid date', 'Please use DD-MM-YYYY format with a valid date.');
+              setEndDate(toDisplayDate(config.endDate));
+              return;
+            }
+            saveField('endDate', toISODate(endDate.trim()));
+          }}
           placeholder="DD-MM-YYYY"
           placeholderTextColor={COLORS.textLight}
         />
@@ -335,7 +361,6 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
   },
   scroll: {
     paddingTop: 60,

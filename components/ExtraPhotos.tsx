@@ -26,12 +26,15 @@ interface Props {
 export default function ExtraMedia({ date }: Props) {
   const media = useJournalStore((s) => s.days[date]?.extraMedia ?? EMPTY);
   const photos = useJournalStore((s) => s.days[date]?.extraPhotos);
+  const favoritePhotoUri = useJournalStore((s) => s.days[date]?.favoritePhotoUri);
   const addExtraMedia = useJournalStore((s) => s.addExtraMedia);
   const removeExtraMedia = useJournalStore((s) => s.removeExtraMedia);
   const addExtraPhoto = useJournalStore((s) => s.addExtraPhoto);
   const removeExtraPhoto = useJournalStore((s) => s.removeExtraPhoto);
+  const setFavoritePhoto = useJournalStore((s) => s.setFavoritePhoto);
 
   const [videoModal, setVideoModal] = useState<string | null>(null);
+  const [photoModal, setPhotoModal] = useState<string | null>(null);
 
   const allItems: ExtraMediaItem[] = [
     ...(photos || []).map((uri) => ({ uri, type: 'photo' as const })),
@@ -101,7 +104,22 @@ export default function ExtraMedia({ date }: Props) {
                     </View>
                   </TouchableOpacity>
                 ) : (
-                  <Image source={{ uri: item.uri }} style={styles.thumb} />
+                  <TouchableOpacity
+                    onPress={() => setPhotoModal(item.uri)}
+                    onLongPress={() => {
+                      const next = favoritePhotoUri === item.uri ? undefined : item.uri;
+                      setFavoritePhoto(date, next);
+                      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                    }}
+                    activeOpacity={0.8}
+                  >
+                    <Image source={{ uri: item.uri }} style={[styles.thumb, favoritePhotoUri === item.uri && styles.thumbFavorite]} />
+                    {favoritePhotoUri === item.uri && (
+                      <View style={styles.starBadge}>
+                        <Text style={styles.starText}>★</Text>
+                      </View>
+                    )}
+                  </TouchableOpacity>
                 )}
                 <TouchableOpacity
                   style={styles.removeButton}
@@ -122,6 +140,18 @@ export default function ExtraMedia({ date }: Props) {
           <Text style={styles.addText}>🖼️ Gallery</Text>
         </TouchableOpacity>
       </View>
+
+      <Modal visible={!!photoModal} transparent animationType="fade" onRequestClose={() => setPhotoModal(null)}>
+        <Pressable style={styles.videoOverlay} onPress={() => setPhotoModal(null)}>
+          {photoModal && (
+            <Image
+              source={{ uri: photoModal }}
+              style={styles.fullImage}
+              resizeMode="contain"
+            />
+          )}
+        </Pressable>
+      </Modal>
 
       <Modal visible={!!videoModal} transparent animationType="fade" onRequestClose={() => setVideoModal(null)}>
         <Pressable style={styles.videoOverlay} onPress={() => setVideoModal(null)}>
@@ -193,6 +223,25 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: 'Nunito_700Bold',
   },
+  thumbFavorite: {
+    borderWidth: 2,
+    borderColor: '#C4A84A',
+  },
+  starBadge: {
+    position: 'absolute',
+    bottom: 2,
+    left: 2,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  starText: {
+    color: '#C4A84A',
+    fontSize: 14,
+  },
   buttons: {
     flexDirection: 'row',
     gap: 10,
@@ -225,5 +274,10 @@ const styles = StyleSheet.create({
   },
   videoPlayer: {
     flex: 1,
+  },
+  fullImage: {
+    width: '90%',
+    height: '80%',
+    borderRadius: 12,
   },
 });
