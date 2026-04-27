@@ -24,8 +24,7 @@
     },
     "plugins": [
       "expo-router",
-      "expo-dev-client",
-      "react-native-apple-shazamkit"
+      "expo-dev-client"
     ],
     "experiments": {
       "typedRoutes": true

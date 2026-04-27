@@ -8,7 +8,6 @@ import {
   Image,
   Alert,
   ActivityIndicator,
-  ScrollView,
 } from 'react-native';
 import BottomSheet, { BottomSheetView, BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import * as Haptics from 'expo-haptics';
@@ -22,7 +21,6 @@ import { CATEGORY_CONFIG, COLORS, CUSTOM_COLOR_OPTIONS, getCategoryDisplay } fro
 import { Entry, EntryCategory, Dish, Song, TrainType, BarGenre, CustomCategory } from '../lib/types';
 import { fetchNearbyPlaces } from '../lib/nearby';
 import AudioRecorder from './AudioRecorder';
-import { useShazam } from '../lib/useShazam';
 
 const TRAIN_TYPES: { value: TrainType; label: string }[] = [
   { value: 'metro', label: 'Metro' },
@@ -95,7 +93,6 @@ export default function AddEntrySheet({ sheetRef, editingEntry, onEditDone, forD
   const [hadLiveMusic, setHadLiveMusic] = useState(false);
   const [barGenre, setBarGenre] = useState<BarGenre>('metal');
   const [songs, setSongs] = useState<Song[]>([]);
-  const { isListening, startListening, stopListening } = useShazam();
 
   // Custom category
   const [customCategoryId, setCustomCategoryId] = useState<string | undefined>(undefined);
@@ -271,18 +268,6 @@ export default function AddEntrySheet({ sheetRef, editingEntry, onEditDone, forD
 
   const removeSong = (index: number) => {
     setSongs((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  const handleShazam = async () => {
-    if (isListening) {
-      stopListening();
-      return;
-    }
-    const song = await startListening();
-    if (song) {
-      setSongs((prev) => [...prev, song]);
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    }
   };
 
   const buildAutoText = (): string => {
@@ -650,7 +635,7 @@ export default function AddEntrySheet({ sheetRef, editingEntry, onEditDone, forD
                 placeholder="🚉 To station"
                 placeholderTextColor={COLORS.textLight}
               />
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.trainTypeRow}>
+              <BottomSheetScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.trainTypeRow}>
                 {TRAIN_TYPES.map((tt) => (
                   <TouchableOpacity
                     key={tt.value}
@@ -663,14 +648,14 @@ export default function AddEntrySheet({ sheetRef, editingEntry, onEditDone, forD
                     </Text>
                   </TouchableOpacity>
                 ))}
-              </ScrollView>
+              </BottomSheetScrollView>
             </View>
           )}
 
           {/* Bar: genre, live music, songs */}
           {category === 'bar' && (
             <View style={styles.barSection}>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.trainTypeRow}>
+              <View style={styles.barGenreRow}>
                 {BAR_GENRES.map((g) => (
                   <TouchableOpacity
                     key={g.value}
@@ -683,7 +668,7 @@ export default function AddEntrySheet({ sheetRef, editingEntry, onEditDone, forD
                     </Text>
                   </TouchableOpacity>
                 ))}
-              </ScrollView>
+              </View>
               <TouchableOpacity
                 style={[styles.goshuinToggle, hadLiveMusic && styles.liveMusicToggleActive]}
                 onPress={() => setHadLiveMusic(!hadLiveMusic)}
@@ -875,25 +860,9 @@ export default function AddEntrySheet({ sheetRef, editingEntry, onEditDone, forD
                   />
                 </View>
               ))}
-              <View style={styles.songButtonsRow}>
-                <TouchableOpacity style={styles.addSongButton} onPress={addSong}>
-                  <Text style={styles.addSongText}>+ Add Song</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.shazamButton, isListening && styles.shazamButtonActive]}
-                  onPress={handleShazam}
-                  activeOpacity={0.7}
-                >
-                  {isListening ? (
-                    <ActivityIndicator size="small" color={COLORS.white} />
-                  ) : (
-                    <Text style={styles.shazamButtonText}>🎧 Shazam It</Text>
-                  )}
-                  {isListening && (
-                    <Text style={styles.shazamListeningText}>Listening...</Text>
-                  )}
-                </TouchableOpacity>
-              </View>
+              <TouchableOpacity style={styles.addSongButton} onPress={addSong}>
+                <Text style={styles.addSongText}>+ Add Song</Text>
+              </TouchableOpacity>
             </View>
           )}
 
@@ -1381,6 +1350,12 @@ const styles = StyleSheet.create({
   barSection: {
     marginBottom: 4,
   },
+  barGenreRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 12,
+  },
   barGenreChipSelected: {
     backgroundColor: COLORS.purple,
     borderColor: COLORS.purple,
@@ -1392,13 +1367,8 @@ const styles = StyleSheet.create({
     borderColor: COLORS.purple,
     backgroundColor: COLORS.purple + '15',
   },
-  songButtonsRow: {
-    flexDirection: 'row',
-    gap: 8,
-    marginTop: 8,
-  },
   addSongButton: {
-    flex: 1,
+    marginTop: 8,
     paddingVertical: 12,
     alignItems: 'center',
     borderRadius: 12,
@@ -1410,29 +1380,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Nunito_600SemiBold',
     fontSize: 14,
     color: COLORS.purple,
-  },
-  shazamButton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    paddingVertical: 12,
-    borderRadius: 12,
-    backgroundColor: COLORS.purple,
-  },
-  shazamButtonActive: {
-    backgroundColor: COLORS.primary,
-  },
-  shazamButtonText: {
-    fontFamily: 'Nunito_600SemiBold',
-    fontSize: 14,
-    color: COLORS.white,
-  },
-  shazamListeningText: {
-    fontFamily: 'Nunito_600SemiBold',
-    fontSize: 14,
-    color: COLORS.white,
   },
   addCatButton: {
     width: '30%',
