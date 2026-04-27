@@ -35,6 +35,13 @@
         "projectId": "57bb08f5-48ec-4d5c-a90a-b13def640e6b"
       }
     },
-    "owner": "msanchezgalvez"
+    "owner": "msanchezgalvez",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/57bb08f5-48ec-4d5c-a90a-b13def640e6b"
+    },
+    "ios": {}
   }
 }
