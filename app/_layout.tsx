@@ -138,6 +138,26 @@ export default function RootLayout() {
           }}
         />
         <Stack.Screen
+          name="extras/collage"
+          options={{
+            headerShown: true,
+            headerTitle: 'Photo Collage',
+            headerStyle: { backgroundColor: COLORS.background },
+            headerTintColor: COLORS.text,
+            presentation: 'card',
+          }}
+        />
+        <Stack.Screen
+          name="extras/awards"
+          options={{
+            headerShown: true,
+            headerTitle: 'Trip Awards',
+            headerStyle: { backgroundColor: COLORS.background },
+            headerTintColor: COLORS.text,
+            presentation: 'card',
+          }}
+        />
+        <Stack.Screen
           name="extras/past-trips"
           options={{
             headerShown: true,

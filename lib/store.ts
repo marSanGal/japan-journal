@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { format } from 'date-fns';
-import { TripConfig, Entry, DayLog, EkiStamp } from './types';
+import { TripConfig, Entry, DayLog, EkiStamp, ExtraMediaItem } from './types';
 import { GoshuinStamp } from './goshuin';
 import { ManholeEntry } from './manholes';
 
@@ -33,8 +33,11 @@ interface JournalState {
   deleteManhole: (id: string) => void;
   addEkiStamp: (stamp: EkiStamp) => void;
   deleteEkiStamp: (id: string) => void;
+  setEkiStampCount: (date: string, count: number) => void;
   addExtraPhoto: (date: string, uri: string) => void;
   removeExtraPhoto: (date: string, uri: string) => void;
+  addExtraMedia: (date: string, item: ExtraMediaItem) => void;
+  removeExtraMedia: (date: string, uri: string) => void;
   setNarratorPersona: (persona: string) => void;
   archiveTrip: () => void;
   getDayLog: (date: string) => DayLog;
@@ -194,6 +197,12 @@ export const useJournalStore = create<JournalState>()(
           ekiStamps: state.ekiStamps.filter((s) => s.id !== id),
         })),
 
+      setEkiStampCount: (date, count) =>
+        set((state) => {
+          const day = ensureDay(state.days, date);
+          return { days: { ...state.days, [date]: { ...day, ekiStampCount: count } } };
+        }),
+
       addExtraPhoto: (date, uri) =>
         set((state) => {
           const day = ensureDay(state.days, date);
@@ -206,6 +215,20 @@ export const useJournalStore = create<JournalState>()(
           const day = ensureDay(state.days, date);
           const photos = (day.extraPhotos || []).filter((p) => p !== uri);
           return { days: { ...state.days, [date]: { ...day, extraPhotos: photos } } };
+        }),
+
+      addExtraMedia: (date, item) =>
+        set((state) => {
+          const day = ensureDay(state.days, date);
+          const media = [...(day.extraMedia || []), item];
+          return { days: { ...state.days, [date]: { ...day, extraMedia: media } } };
+        }),
+
+      removeExtraMedia: (date, uri) =>
+        set((state) => {
+          const day = ensureDay(state.days, date);
+          const media = (day.extraMedia || []).filter((m) => m.uri !== uri);
+          return { days: { ...state.days, [date]: { ...day, extraMedia: media } } };
         }),
 
       setNarratorPersona: (persona) => set({ narratorPersona: persona }),

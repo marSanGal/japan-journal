@@ -21,6 +21,7 @@ import FAB from '../../components/FAB';
 import AddEntrySheet from '../../components/AddEntrySheet';
 import SyncPanel from '../../components/SyncPanel';
 import ExtraPhotos from '../../components/ExtraPhotos';
+import EkiStampCounter from '../../components/EkiStampCounter';
 import { fetchWeatherForDate } from '../../lib/weather';
 import { fetchLiveRate } from '../../lib/currency';
 
@@ -102,6 +103,7 @@ export default function TodayScreen() {
         ListFooterComponent={
           <View>
             <ExtraPhotos date={today} />
+            <EkiStampCounter date={today} />
             {entries.length > 0 && (
               <View style={styles.footer}>
                 {config.partners.length > 0 && (

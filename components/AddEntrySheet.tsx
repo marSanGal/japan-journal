@@ -19,7 +19,7 @@ import { v4 as uuid } from 'uuid';
 import { format } from 'date-fns';
 import { useJournalStore } from '../lib/store';
 import { CATEGORY_CONFIG, COLORS } from '../lib/constants';
-import { Entry, EntryCategory, Dish, TrainType } from '../lib/types';
+import { Entry, EntryCategory, Dish, Song, TrainType, BarGenre } from '../lib/types';
 import { fetchNearbyPlaces } from '../lib/nearby';
 import AudioRecorder from './AudioRecorder';
 
@@ -27,6 +27,15 @@ const TRAIN_TYPES: { value: TrainType; label: string }[] = [
   { value: 'metro', label: 'Metro' },
   { value: 'shinkansen', label: 'Shinkansen' },
   { value: 'local', label: 'Local' },
+  { value: 'other', label: 'Other' },
+];
+
+const BAR_GENRES: { value: BarGenre; label: string }[] = [
+  { value: 'metal', label: 'Metal' },
+  { value: 'punk', label: 'Punk' },
+  { value: 'rock', label: 'Rock' },
+  { value: 'jazz', label: 'Jazz' },
+  { value: 'electronic', label: 'Electronic' },
   { value: 'other', label: 'Other' },
 ];
 
@@ -77,6 +86,11 @@ export default function AddEntrySheet({ sheetRef, editingEntry, onEditDone, forD
   const [toStation, setToStation] = useState('');
   const [trainType, setTrainType] = useState<TrainType>('metro');
 
+  // Bar-specific
+  const [hadLiveMusic, setHadLiveMusic] = useState(false);
+  const [barGenre, setBarGenre] = useState<BarGenre>('metal');
+  const [songs, setSongs] = useState<Song[]>([]);
+
   const isEditing = !!editingEntry;
 
   useEffect(() => {
@@ -99,10 +113,13 @@ export default function AddEntrySheet({ sheetRef, editingEntry, onEditDone, forD
         setToStation(editingEntry.trainInfo.toStation);
         setTrainType(editingEntry.trainInfo.type);
       }
+      setHadLiveMusic(editingEntry.hadLiveMusic || false);
+      setBarGenre(editingEntry.barGenre || 'metal');
+      setSongs(editingEntry.songs || []);
     }
   }, [editingEntry]);
 
-  const snapPoints = useMemo(() => ['65%', '90%'], []);
+  const snapPoints = useMemo(() => ['75%', '90%'], []);
 
   const toggleParticipant = useCallback((name: string) => {
     setParticipants((prev) => {
@@ -133,6 +150,9 @@ export default function AddEntrySheet({ sheetRef, editingEntry, onEditDone, forD
     setFromStation('');
     setToStation('');
     setTrainType('metro');
+    setHadLiveMusic(false);
+    setBarGenre('metal');
+    setSongs([]);
   };
 
   const handleGpsLookup = async () => {
@@ -212,6 +232,20 @@ export default function AddEntrySheet({ sheetRef, editingEntry, onEditDone, forD
     setDishes((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const addSong = () => {
+    setSongs((prev) => [...prev, { name: '', artist: '' }]);
+  };
+
+  const updateSong = (index: number, updates: Partial<Song>) => {
+    setSongs((prev) =>
+      prev.map((s, i) => (i === index ? { ...s, ...updates } : s))
+    );
+  };
+
+  const removeSong = (index: number) => {
+    setSongs((prev) => prev.filter((_, i) => i !== index));
+  };
+
   const buildAutoText = (): string => {
     if (!category) return '';
     if (category === 'walk' && stepsCount) return `Walked ${stepsCount} steps`;
@@ -219,6 +253,12 @@ export default function AddEntrySheet({ sheetRef, editingEntry, onEditDone, forD
       const tt = TRAIN_TYPES.find((t) => t.value === trainType)?.label || trainType;
       return `${fromStation} → ${toStation} (${tt})`;
     }
+    if (category === 'bar') {
+      const genre = BAR_GENRES.find((g) => g.value === barGenre)?.label || '';
+      return hadLiveMusic ? `Live ${genre} night` : `${genre} bar`;
+    }
+    if (category === 'gachapon') return 'Gachapon pull';
+    if (category === 'vending') return 'Vending machine find';
     return CATEGORY_CONFIG[category].label;
   };
 
@@ -247,6 +287,11 @@ export default function AddEntrySheet({ sheetRef, editingEntry, onEditDone, forD
         : undefined,
       trainInfo: category === 'train' && fromStation.trim() && toStation.trim()
         ? { fromStation: fromStation.trim(), toStation: toStation.trim(), type: trainType }
+        : undefined,
+      hadLiveMusic: category === 'bar' ? hadLiveMusic : undefined,
+      barGenre: category === 'bar' ? barGenre : undefined,
+      songs: category === 'bar' && songs.length > 0
+        ? songs.filter((s) => s.name.trim())
         : undefined,
     };
 
@@ -292,7 +337,7 @@ export default function AddEntrySheet({ sheetRef, editingEntry, onEditDone, forD
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     reset();
     sheetRef.current?.close();
-  }, [category, text, location, amountYen, stepsCount, participants, timeOffset, config, addEntry, updateEntry, addGoshuinStamp, sheetRef, photoUri, audioUri, isEditing, editingEntry, onEditDone, forDate, hasGoshuin, goshuinPhotoUri, dishes, engrishContext, fromStation, toStation, trainType]);
+  }, [category, text, location, amountYen, stepsCount, participants, timeOffset, config, addEntry, updateEntry, addGoshuinStamp, sheetRef, photoUri, audioUri, isEditing, editingEntry, onEditDone, forDate, hasGoshuin, goshuinPhotoUri, dishes, engrishContext, fromStation, toStation, trainType, hadLiveMusic, barGenre, songs]);
 
   const categories = Object.entries(CATEGORY_CONFIG) as [
     EntryCategory,
@@ -303,6 +348,9 @@ export default function AddEntrySheet({ sheetRef, editingEntry, onEditDone, forD
     if (category === 'engrish') return 'The exact phrase you saw...';
     if (category === 'walk') return 'Notes about your walk (optional)';
     if (category === 'train') return 'Notes about the ride (optional)';
+    if (category === 'bar') return 'Venue name or vibe (optional)';
+    if (category === 'gachapon') return 'What did you get?';
+    if (category === 'vending') return 'What drink/item?';
     return 'What happened?';
   };
 
@@ -420,6 +468,35 @@ export default function AddEntrySheet({ sheetRef, editingEntry, onEditDone, forD
             </View>
           )}
 
+          {/* Bar: genre, live music, songs */}
+          {category === 'bar' && (
+            <View style={styles.barSection}>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.trainTypeRow}>
+                {BAR_GENRES.map((g) => (
+                  <TouchableOpacity
+                    key={g.value}
+                    style={[styles.trainTypeChip, barGenre === g.value && styles.barGenreChipSelected]}
+                    onPress={() => setBarGenre(g.value)}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={[styles.trainTypeText, barGenre === g.value && styles.barGenreTextSelected]}>
+                      {g.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+              <TouchableOpacity
+                style={[styles.goshuinToggle, hadLiveMusic && styles.liveMusicToggleActive]}
+                onPress={() => setHadLiveMusic(!hadLiveMusic)}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.goshuinToggleText}>
+                  {hadLiveMusic ? '🎤 Live music!' : '🎤 Live music?'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
           <TextInput
             style={styles.textInput}
             value={text}
@@ -427,7 +504,7 @@ export default function AddEntrySheet({ sheetRef, editingEntry, onEditDone, forD
             placeholder={getPlaceholder()}
             placeholderTextColor={COLORS.textLight}
             multiline
-            autoFocus={category !== 'walk' && category !== 'train'}
+            autoFocus={category !== 'walk' && category !== 'train' && category !== 'bar'}
           />
 
           {/* Engrish: context */}
@@ -484,7 +561,7 @@ export default function AddEntrySheet({ sheetRef, editingEntry, onEditDone, forD
             </View>
           )}
 
-          {category === 'purchase' && (
+          {(category === 'purchase' || category === 'gachapon' || category === 'vending') && (
             <TextInput
               style={styles.input}
               value={amountYen}
@@ -568,6 +645,39 @@ export default function AddEntrySheet({ sheetRef, editingEntry, onEditDone, forD
               ))}
               <TouchableOpacity style={styles.addDishButton} onPress={addDish}>
                 <Text style={styles.addDishText}>+ Add Dish</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {/* Bar: songs */}
+          {category === 'bar' && (
+            <View style={styles.dishesSection}>
+              <Text style={styles.rowLabel}>🎵 Songs that played</Text>
+              {songs.map((song, index) => (
+                <View key={index} style={styles.dishCard}>
+                  <View style={styles.dishHeader}>
+                    <TextInput
+                      style={styles.dishNameInput}
+                      value={song.name}
+                      onChangeText={(val) => updateSong(index, { name: val })}
+                      placeholder="Song name"
+                      placeholderTextColor={COLORS.textLight}
+                    />
+                    <TouchableOpacity onPress={() => removeSong(index)}>
+                      <Text style={styles.dishRemove}>✕</Text>
+                    </TouchableOpacity>
+                  </View>
+                  <TextInput
+                    style={styles.dishCommentInput}
+                    value={song.artist}
+                    onChangeText={(val) => updateSong(index, { artist: val })}
+                    placeholder="Artist (optional)"
+                    placeholderTextColor={COLORS.textLight}
+                  />
+                </View>
+              ))}
+              <TouchableOpacity style={styles.addSongButton} onPress={addSong}>
+                <Text style={styles.addSongText}>+ Add Song</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -1052,5 +1162,33 @@ const styles = StyleSheet.create({
   },
   trainTypeTextSelected: {
     color: COLORS.white,
+  },
+  barSection: {
+    marginBottom: 4,
+  },
+  barGenreChipSelected: {
+    backgroundColor: '#8B6F8E',
+    borderColor: '#8B6F8E',
+  },
+  barGenreTextSelected: {
+    color: COLORS.white,
+  },
+  liveMusicToggleActive: {
+    borderColor: '#8B6F8E',
+    backgroundColor: '#8B6F8E' + '15',
+  },
+  addSongButton: {
+    marginTop: 8,
+    paddingVertical: 12,
+    alignItems: 'center',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderStyle: 'dashed',
+  },
+  addSongText: {
+    fontFamily: 'Nunito_600SemiBold',
+    fontSize: 14,
+    color: '#8B6F8E',
   },
 });

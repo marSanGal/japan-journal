@@ -80,6 +80,27 @@ export default function EntryCard({ entry, onLongPress, onPress }: Props) {
             ))}
           </View>
         )}
+        {entry.hadLiveMusic !== undefined && entry.category === 'bar' && (
+          <View style={styles.barInfoRow}>
+            {entry.barGenre && (
+              <View style={styles.barGenreBadge}>
+                <Text style={styles.barGenreLabel}>{entry.barGenre}</Text>
+              </View>
+            )}
+            {entry.hadLiveMusic && (
+              <Text style={styles.liveMusicTag}>🎤 Live!</Text>
+            )}
+          </View>
+        )}
+        {entry.songs && entry.songs.length > 0 && (
+          <View style={styles.songList}>
+            {entry.songs.map((song, i) => (
+              <Text key={i} style={styles.songRow}>
+                🎵 {song.name}{song.artist ? ` — ${song.artist}` : ''}
+              </Text>
+            ))}
+          </View>
+        )}
         {entry.stepsCount && (
           <Text style={styles.stepsText}>👣 {entry.stepsCount.toLocaleString()} steps</Text>
         )}
@@ -257,6 +278,38 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#B8C8A8',
     marginTop: 2,
+  },
+  barInfoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 4,
+  },
+  barGenreBadge: {
+    backgroundColor: '#8B6F8E' + '30',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 8,
+  },
+  barGenreLabel: {
+    fontFamily: 'Nunito_600SemiBold',
+    fontSize: 11,
+    color: '#8B6F8E',
+    textTransform: 'capitalize',
+  },
+  liveMusicTag: {
+    fontFamily: 'Nunito_600SemiBold',
+    fontSize: 12,
+    color: '#8B6F8E',
+  },
+  songList: {
+    marginTop: 4,
+    gap: 2,
+  },
+  songRow: {
+    fontFamily: 'Nunito_600SemiBold',
+    fontSize: 12,
+    color: '#8B6F8E',
   },
   goshuinBadge: {
     fontFamily: 'Nunito_600SemiBold',

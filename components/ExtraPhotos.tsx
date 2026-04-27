@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useState } from 'react';
 import {
   View,
   Text,
@@ -7,32 +7,47 @@ import {
   ScrollView,
   StyleSheet,
   Alert,
+  Modal,
+  Pressable,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as Haptics from 'expo-haptics';
+import { Video, ResizeMode } from 'expo-av';
 import { useJournalStore } from '../lib/store';
+import { ExtraMediaItem } from '../lib/types';
 import { COLORS } from '../lib/constants';
 
-const EMPTY: string[] = [];
+const EMPTY: ExtraMediaItem[] = [];
 
 interface Props {
   date: string;
 }
 
-export default function ExtraPhotos({ date }: Props) {
-  const photos = useJournalStore((s) => s.days[date]?.extraPhotos ?? EMPTY);
+export default function ExtraMedia({ date }: Props) {
+  const media = useJournalStore((s) => s.days[date]?.extraMedia ?? EMPTY);
+  const photos = useJournalStore((s) => s.days[date]?.extraPhotos);
+  const addExtraMedia = useJournalStore((s) => s.addExtraMedia);
+  const removeExtraMedia = useJournalStore((s) => s.removeExtraMedia);
   const addExtraPhoto = useJournalStore((s) => s.addExtraPhoto);
   const removeExtraPhoto = useJournalStore((s) => s.removeExtraPhoto);
 
-  const handleAdd = async () => {
+  const [videoModal, setVideoModal] = useState<string | null>(null);
+
+  const allItems: ExtraMediaItem[] = [
+    ...(photos || []).map((uri) => ({ uri, type: 'photo' as const })),
+    ...media,
+  ];
+
+  const handleAddFromGallery = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
+      mediaTypes: ['images', 'videos'],
       quality: 0.7,
       allowsMultipleSelection: true,
     });
     if (!result.canceled) {
       for (const asset of result.assets) {
-        addExtraPhoto(date, asset.uri);
+        const type = asset.type === 'video' ? 'video' : 'photo';
+        addExtraMedia(date, { uri: asset.uri, type });
       }
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
@@ -46,44 +61,83 @@ export default function ExtraPhotos({ date }: Props) {
     }
     const result = await ImagePicker.launchCameraAsync({ quality: 0.7 });
     if (!result.canceled && result.assets[0]) {
-      addExtraPhoto(date, result.assets[0].uri);
+      addExtraMedia(date, { uri: result.assets[0].uri, type: 'photo' });
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
   };
 
-  const handleRemove = (uri: string) => {
-    Alert.alert('Remove photo?', undefined, [
+  const handleRemove = (item: ExtraMediaItem, isLegacy: boolean) => {
+    Alert.alert(`Remove ${item.type}?`, undefined, [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Remove', style: 'destructive', onPress: () => removeExtraPhoto(date, uri) },
+      {
+        text: 'Remove',
+        style: 'destructive',
+        onPress: () => {
+          if (isLegacy) {
+            removeExtraPhoto(date, item.uri);
+          } else {
+            removeExtraMedia(date, item.uri);
+          }
+        },
+      },
     ]);
   };
 
+  const legacyCount = photos?.length || 0;
+
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>📸 Extra Photos</Text>
-      {photos.length > 0 && (
+      <Text style={styles.label}>📸 Extra Photos / Videos</Text>
+      {allItems.length > 0 && (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.scroll}>
-          {photos.map((uri, i) => (
-            <View key={i} style={styles.thumbWrapper}>
-              <Image source={{ uri }} style={styles.thumb} />
-              <TouchableOpacity
-                style={styles.removeButton}
-                onPress={() => handleRemove(uri)}
-              >
-                <Text style={styles.removeText}>✕</Text>
-              </TouchableOpacity>
-            </View>
-          ))}
+          {allItems.map((item, i) => {
+            const isLegacy = i < legacyCount;
+            return (
+              <View key={`${item.uri}-${i}`} style={styles.thumbWrapper}>
+                {item.type === 'video' ? (
+                  <TouchableOpacity onPress={() => setVideoModal(item.uri)} activeOpacity={0.8}>
+                    <View style={styles.videoThumb}>
+                      <Text style={styles.playIcon}>▶</Text>
+                    </View>
+                  </TouchableOpacity>
+                ) : (
+                  <Image source={{ uri: item.uri }} style={styles.thumb} />
+                )}
+                <TouchableOpacity
+                  style={styles.removeButton}
+                  onPress={() => handleRemove(item, isLegacy)}
+                >
+                  <Text style={styles.removeText}>✕</Text>
+                </TouchableOpacity>
+              </View>
+            );
+          })}
         </ScrollView>
       )}
       <View style={styles.buttons}>
         <TouchableOpacity style={styles.addButton} onPress={handleCamera}>
           <Text style={styles.addText}>📷 Camera</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.addButton} onPress={handleAdd}>
+        <TouchableOpacity style={styles.addButton} onPress={handleAddFromGallery}>
           <Text style={styles.addText}>🖼️ Gallery</Text>
         </TouchableOpacity>
       </View>
+
+      <Modal visible={!!videoModal} transparent animationType="fade" onRequestClose={() => setVideoModal(null)}>
+        <Pressable style={styles.videoOverlay} onPress={() => setVideoModal(null)}>
+          <View style={styles.videoContainer}>
+            {videoModal && (
+              <Video
+                source={{ uri: videoModal }}
+                style={styles.videoPlayer}
+                useNativeControls
+                resizeMode={ResizeMode.CONTAIN}
+                shouldPlay
+              />
+            )}
+          </View>
+        </Pressable>
+      </Modal>
     </View>
   );
 }
@@ -110,6 +164,18 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 10,
+  },
+  videoThumb: {
+    width: 80,
+    height: 80,
+    borderRadius: 10,
+    backgroundColor: COLORS.text + '20',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  playIcon: {
+    fontSize: 28,
+    color: COLORS.white,
   },
   removeButton: {
     position: 'absolute',
@@ -144,5 +210,20 @@ const styles = StyleSheet.create({
     fontFamily: 'Nunito_600SemiBold',
     fontSize: 13,
     color: COLORS.text,
+  },
+  videoOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.85)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  videoContainer: {
+    width: '90%',
+    aspectRatio: 16 / 9,
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  videoPlayer: {
+    flex: 1,
   },
 });

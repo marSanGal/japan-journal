@@ -42,6 +42,9 @@ export const CATEGORY_CONFIG: Record<
   walk: { label: 'Walk', icon: '👣', color: '#B8C8A8' },
   surprise: { label: 'Surprise', icon: '😲', color: '#F4B88C' },
   train: { label: 'Train', icon: '🚆', color: '#A8B8D8' },
+  bar: { label: 'Bar', icon: '🎸', color: '#8B6F8E' },
+  gachapon: { label: 'Gachapon', icon: '🎰', color: '#E8A0B8' },
+  vending: { label: 'Vending', icon: '🥤', color: '#7EBFA8' },
 };
 
 export const WEATHER_OPTIONS = [

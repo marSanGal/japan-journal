@@ -13,7 +13,6 @@ export default function StatsScreen() {
   const goshuinCount = useJournalStore((s) => s.goshuinStamps.length);
   const konbiniCount = useJournalStore((s) => s.konbiniChecked.length);
   const manholeCount = useJournalStore((s) => s.manholeCovers.length);
-  const ekiStampCount = useJournalStore((s) => s.ekiStamps.length);
   const persona = useJournalStore((s) => s.narratorPersona);
   const pastTripsCount = useJournalStore((s) => s.pastTrips.length);
 
@@ -37,6 +36,9 @@ export default function StatsScreen() {
   const totalSteps = allEntries
     .filter((e) => e.stepsCount)
     .reduce((sum, e) => sum + (e.stepsCount || 0), 0);
+  const totalEkiStamps = Object.values(days).reduce(
+    (sum, d) => sum + (d.ekiStampCount || 0), 0
+  );
 
   const loggedDays = Object.entries(days)
     .filter(([, d]) => d.entries.length > 0)
@@ -63,6 +65,26 @@ export default function StatsScreen() {
     .sort((a, b) => b[1] - a[1])
     .slice(0, 6);
 
+  const spendingData = (() => {
+    if (!config) return [];
+    const rows = Object.entries(days)
+      .filter(([, d]) => (d.totalSpendYen || 0) > 0)
+      .map(([dateStr, d]) => {
+        const start = new Date(config.startDate);
+        const current = new Date(dateStr);
+        const dayNum = Math.floor(
+          (current.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)
+        ) + 1;
+        return { date: dateStr, dayNum, amount: d.totalSpendYen || 0, pct: 0 };
+      })
+      .sort((a, b) => a.date.localeCompare(b.date));
+    const max = Math.max(...rows.map((r) => r.amount), 1);
+    for (const row of rows) {
+      row.pct = Math.round((row.amount / max) * 100);
+    }
+    return rows;
+  })();
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.scroll}>
       <View style={styles.header}>
@@ -80,7 +102,30 @@ export default function StatsScreen() {
         <StatBox label="Chapters" value={chaptersWritten.toString()} icon="📖" width={tileWidth} />
         <StatBox label="Total Spent" value={totalYen > 0 ? formatYenWithUsd(totalYen) : '¥0'} icon="💴" width={tileWidth} />
         <StatBox label="Total Steps" value={totalSteps > 0 ? totalSteps.toLocaleString() : '0'} icon="👣" width={tileWidth} />
+        <StatBox label="Eki Stamps" value={totalEkiStamps.toString()} icon="🔖" width={tileWidth} />
       </View>
+
+      {spendingData.length > 0 && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Daily Spending</Text>
+          {spendingData.map((d) => (
+            <View key={d.date} style={styles.spendRow}>
+              <Text style={styles.spendLabel}>Day {d.dayNum}</Text>
+              <View style={styles.spendBarTrack}>
+                <View
+                  style={[
+                    styles.spendBar,
+                    { width: `${d.pct}%` },
+                  ]}
+                />
+              </View>
+              <Text style={styles.spendAmount}>
+                ¥{d.amount.toLocaleString()}
+              </Text>
+            </View>
+          ))}
+        </View>
+      )}
 
       {loggedDays.length > 0 && (
         <View style={styles.section}>
@@ -168,16 +213,6 @@ export default function StatsScreen() {
             <Text style={styles.extrasCount}>Gacha!</Text>
           </TouchableOpacity>
         </View>
-        <View style={styles.extrasRow}>
-          <TouchableOpacity
-            style={styles.extrasButton}
-            onPress={() => router.push('/extras/ekistamps')}
-          >
-            <Text style={styles.extrasIcon}>🔖</Text>
-            <Text style={styles.extrasLabel}>Eki Stamps</Text>
-            <Text style={styles.extrasCount}>{ekiStampCount}</Text>
-          </TouchableOpacity>
-        </View>
       </View>
 
       <View style={styles.extrasSection}>
@@ -197,6 +232,22 @@ export default function StatsScreen() {
             <Text style={styles.extrasIcon}>🎭</Text>
             <Text style={styles.extrasLabel}>Narrator</Text>
             <Text style={styles.extrasCount}>{persona === 'ghibli' ? 'Ghibli' : '✓'}</Text>
+          </TouchableOpacity>
+        </View>
+        <View style={styles.extrasRow}>
+          <TouchableOpacity
+            style={styles.extrasButton}
+            onPress={() => router.push('/extras/awards')}
+          >
+            <Text style={styles.extrasIcon}>🏆</Text>
+            <Text style={styles.extrasLabel}>Awards</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.extrasButton}
+            onPress={() => router.push('/extras/collage')}
+          >
+            <Text style={styles.extrasIcon}>🖼️</Text>
+            <Text style={styles.extrasLabel}>Collage</Text>
           </TouchableOpacity>
         </View>
         <View style={styles.extrasRow}>
@@ -431,6 +482,7 @@ const styles = StyleSheet.create({
   extrasSection: {
     paddingHorizontal: 16,
     marginBottom: 24,
+    gap: 10,
   },
   extrasRow: {
     flexDirection: 'row',
@@ -462,5 +514,36 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: COLORS.textLight,
     marginTop: 2,
+  },
+  spendRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+    gap: 8,
+  },
+  spendLabel: {
+    fontFamily: 'Nunito_600SemiBold',
+    fontSize: 12,
+    color: COLORS.textLight,
+    width: 44,
+  },
+  spendBarTrack: {
+    flex: 1,
+    height: 18,
+    backgroundColor: COLORS.border,
+    borderRadius: 9,
+    overflow: 'hidden',
+  },
+  spendBar: {
+    height: '100%',
+    backgroundColor: COLORS.orange,
+    borderRadius: 9,
+  },
+  spendAmount: {
+    fontFamily: 'Nunito_700Bold',
+    fontSize: 12,
+    color: COLORS.orange,
+    width: 70,
+    textAlign: 'right',
   },
 });

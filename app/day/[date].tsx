@@ -17,6 +17,7 @@ import EntryCard from '../../components/EntryCard';
 import FAB from '../../components/FAB';
 import AddEntrySheet from '../../components/AddEntrySheet';
 import ExtraPhotos from '../../components/ExtraPhotos';
+import EkiStampCounter from '../../components/EkiStampCounter';
 
 export default function DayEditorScreen() {
   const { date } = useLocalSearchParams<{ date: string }>();
@@ -71,6 +72,7 @@ export default function DayEditorScreen() {
         ListFooterComponent={
           <View>
             <ExtraPhotos date={date} />
+            <EkiStampCounter date={date} />
             {entries.length > 0 && (
               <View style={styles.footer}>
                 <TouchableOpacity

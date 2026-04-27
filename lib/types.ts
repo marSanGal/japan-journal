@@ -8,13 +8,23 @@ export type EntryCategory =
   | 'overheard'
   | 'walk'
   | 'surprise'
-  | 'train';
+  | 'train'
+  | 'bar'
+  | 'gachapon'
+  | 'vending';
 
 export interface Dish {
   name: string;
   rating?: number;
   comment?: string;
 }
+
+export interface Song {
+  name: string;
+  artist?: string;
+}
+
+export type BarGenre = 'metal' | 'punk' | 'rock' | 'jazz' | 'electronic' | 'other';
 
 export type TrainType = 'metro' | 'shinkansen' | 'local' | 'other';
 
@@ -50,6 +60,9 @@ export interface Entry {
   dishes?: Dish[];
   engrishContext?: string;
   trainInfo?: TrainInfo;
+  hadLiveMusic?: boolean;
+  barGenre?: BarGenre;
+  songs?: Song[];
 }
 
 export interface DayLog {
@@ -61,6 +74,13 @@ export interface DayLog {
   narrative?: string;
   chapterNumber?: number;
   extraPhotos?: string[];
+  extraMedia?: ExtraMediaItem[];
+  ekiStampCount?: number;
+}
+
+export interface ExtraMediaItem {
+  uri: string;
+  type: 'photo' | 'video';
 }
 
 export interface EkiStamp {
