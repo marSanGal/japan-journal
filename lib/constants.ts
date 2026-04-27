@@ -38,10 +38,10 @@ export const CATEGORY_CONFIG: Record<
   engrish: { label: 'Engrish', icon: '💬', color: '#C5A8D8' },
   purchase: { label: 'Purchase', icon: '🛍️', color: '#F4E08C' },
   moment: { label: 'Moment', icon: '✨', color: '#F4A7BB' },
-  phrase: { label: 'Phrase', icon: 'あ', color: '#A8D8A8' },
   overheard: { label: 'Overheard', icon: '👂', color: '#D4A8D8' },
   walk: { label: 'Walk', icon: '👣', color: '#B8C8A8' },
   surprise: { label: 'Surprise', icon: '😲', color: '#F4B88C' },
+  train: { label: 'Train', icon: '🚆', color: '#A8B8D8' },
 };
 
 export const WEATHER_OPTIONS = [

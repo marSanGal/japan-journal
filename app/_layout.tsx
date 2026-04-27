@@ -128,6 +128,16 @@ export default function RootLayout() {
           }}
         />
         <Stack.Screen
+          name="extras/ekistamps"
+          options={{
+            headerShown: true,
+            headerTitle: 'Eki Stamps',
+            headerStyle: { backgroundColor: COLORS.background },
+            headerTintColor: COLORS.text,
+            presentation: 'card',
+          }}
+        />
+        <Stack.Screen
           name="extras/past-trips"
           options={{
             headerShown: true,

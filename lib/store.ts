@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { format } from 'date-fns';
-import { TripConfig, Entry, DayLog } from './types';
+import { TripConfig, Entry, DayLog, EkiStamp } from './types';
 import { GoshuinStamp } from './goshuin';
 import { ManholeEntry } from './manholes';
 
@@ -13,6 +13,7 @@ interface JournalState {
   goshuinStamps: GoshuinStamp[];
   konbiniChecked: string[];
   manholeCovers: ManholeEntry[];
+  ekiStamps: EkiStamp[];
   narratorPersona: string;
   pastTrips: { name: string; config: TripConfig; days: Record<string, DayLog>; epilogue: string | null }[];
   anniversaryScheduled: boolean;
@@ -31,6 +32,10 @@ interface JournalState {
   toggleKonbini: (item: string) => void;
   addManhole: (entry: ManholeEntry) => void;
   deleteManhole: (id: string) => void;
+  addEkiStamp: (stamp: EkiStamp) => void;
+  deleteEkiStamp: (id: string) => void;
+  addExtraPhoto: (date: string, uri: string) => void;
+  removeExtraPhoto: (date: string, uri: string) => void;
   setNarratorPersona: (persona: string) => void;
   archiveTrip: () => void;
   setAnniversaryScheduled: (val: boolean) => void;
@@ -53,6 +58,7 @@ export const useJournalStore = create<JournalState>()(
       goshuinStamps: [],
       konbiniChecked: [],
       manholeCovers: [],
+      ekiStamps: [],
       narratorPersona: 'ghibli',
       pastTrips: [],
       anniversaryScheduled: false,
@@ -181,6 +187,30 @@ export const useJournalStore = create<JournalState>()(
           manholeCovers: state.manholeCovers.filter((m) => m.id !== id),
         })),
 
+      addEkiStamp: (stamp) =>
+        set((state) => ({
+          ekiStamps: [...state.ekiStamps, stamp],
+        })),
+
+      deleteEkiStamp: (id) =>
+        set((state) => ({
+          ekiStamps: state.ekiStamps.filter((s) => s.id !== id),
+        })),
+
+      addExtraPhoto: (date, uri) =>
+        set((state) => {
+          const day = ensureDay(state.days, date);
+          const photos = [...(day.extraPhotos || []), uri];
+          return { days: { ...state.days, [date]: { ...day, extraPhotos: photos } } };
+        }),
+
+      removeExtraPhoto: (date, uri) =>
+        set((state) => {
+          const day = ensureDay(state.days, date);
+          const photos = (day.extraPhotos || []).filter((p) => p !== uri);
+          return { days: { ...state.days, [date]: { ...day, extraPhotos: photos } } };
+        }),
+
       setNarratorPersona: (persona) => set({ narratorPersona: persona }),
 
       archiveTrip: () =>
@@ -200,6 +230,7 @@ export const useJournalStore = create<JournalState>()(
             goshuinStamps: [],
             konbiniChecked: [],
             manholeCovers: [],
+            ekiStamps: [],
             anniversaryScheduled: false,
           };
         }),

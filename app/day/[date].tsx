@@ -16,6 +16,7 @@ import DayHeader from '../../components/DayHeader';
 import EntryCard from '../../components/EntryCard';
 import FAB from '../../components/FAB';
 import AddEntrySheet from '../../components/AddEntrySheet';
+import ExtraPhotos from '../../components/ExtraPhotos';
 
 export default function DayEditorScreen() {
   const { date } = useLocalSearchParams<{ date: string }>();
@@ -68,18 +69,21 @@ export default function DayEditorScreen() {
           </View>
         }
         ListFooterComponent={
-          entries.length > 0 ? (
-            <View style={styles.footer}>
-              <TouchableOpacity
-                style={styles.chapterButton}
-                onPress={() => router.push(`/chapter/${date}`)}
-              >
-                <Text style={styles.chapterButtonText}>
-                  📖 View Chapter
-                </Text>
-              </TouchableOpacity>
-            </View>
-          ) : null
+          <View>
+            <ExtraPhotos date={date} />
+            {entries.length > 0 && (
+              <View style={styles.footer}>
+                <TouchableOpacity
+                  style={styles.chapterButton}
+                  onPress={() => router.push(`/chapter/${date}`)}
+                >
+                  <Text style={styles.chapterButtonText}>
+                    📖 View Chapter
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
         }
         contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}

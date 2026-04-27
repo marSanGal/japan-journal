@@ -14,6 +14,7 @@ export default function StatsScreen() {
   const goshuinCount = useJournalStore((s) => s.goshuinStamps.length);
   const konbiniCount = useJournalStore((s) => s.konbiniChecked.length);
   const manholeCount = useJournalStore((s) => s.manholeCovers.length);
+  const ekiStampCount = useJournalStore((s) => s.ekiStamps.length);
   const anniversaryScheduled = useJournalStore((s) => s.anniversaryScheduled);
   const setAnniversaryScheduled = useJournalStore((s) => s.setAnniversaryScheduled);
   const persona = useJournalStore((s) => s.narratorPersona);
@@ -50,6 +51,9 @@ export default function StatsScreen() {
     .reduce((sum, e) => sum + (e.amountYen || 0), 0);
   const chaptersWritten = Object.values(days).filter((d) => d.narrative).length;
   const daysLogged = Object.values(days).filter((d) => d.entries.length > 0).length;
+  const totalSteps = allEntries
+    .filter((e) => e.stepsCount)
+    .reduce((sum, e) => sum + (e.stepsCount || 0), 0);
 
   const loggedDays = Object.entries(days)
     .filter(([, d]) => d.entries.length > 0)
@@ -99,7 +103,11 @@ export default function StatsScreen() {
           label="Total Spent"
           value={totalYen > 0 ? formatYenWithUsd(totalYen) : '¥0'}
           icon="💴"
-          wide
+        />
+        <StatBox
+          label="Total Steps"
+          value={totalSteps > 0 ? totalSteps.toLocaleString() : '0'}
+          icon="👣"
         />
       </View>
 
@@ -189,6 +197,16 @@ export default function StatsScreen() {
             <Text style={styles.extrasCount}>Gacha!</Text>
           </TouchableOpacity>
         </View>
+        <View style={styles.extrasRow}>
+          <TouchableOpacity
+            style={styles.extrasButton}
+            onPress={() => router.push('/extras/ekistamps')}
+          >
+            <Text style={styles.extrasIcon}>🔖</Text>
+            <Text style={styles.extrasLabel}>Eki Stamps</Text>
+            <Text style={styles.extrasCount}>{ekiStampCount}</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <View style={styles.extrasSection}>
@@ -241,8 +259,12 @@ export default function StatsScreen() {
           <Text style={styles.sectionTitle}>Top Categories</Text>
           {sortedCategories.map(([cat, count]) => {
             const cfg = CATEGORY_CONFIG[cat as EntryCategory];
+            if (!cfg) return null;
             const pct =
               totalEntries > 0 ? Math.round((count / totalEntries) * 100) : 0;
+            const displayValue = cat === 'walk' && totalSteps > 0
+              ? totalSteps.toLocaleString()
+              : String(count);
             return (
               <View key={cat} style={styles.catRow}>
                 <Text style={styles.catIcon}>{cfg.icon}</Text>
@@ -255,7 +277,7 @@ export default function StatsScreen() {
                     ]}
                   />
                 </View>
-                <Text style={styles.catCount}>{count}</Text>
+                <Text style={styles.catCount}>{displayValue}</Text>
               </View>
             );
           })}
@@ -400,7 +422,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Nunito_600SemiBold',
     fontSize: 13,
     color: COLORS.textLight,
-    width: 28,
+    minWidth: 28,
     textAlign: 'right',
   },
   dayRow: {

@@ -8,6 +8,7 @@ import {
   Image,
   Alert,
   ActivityIndicator,
+  ScrollView,
 } from 'react-native';
 import BottomSheet, { BottomSheetView, BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import * as Haptics from 'expo-haptics';
@@ -18,9 +19,16 @@ import { v4 as uuid } from 'uuid';
 import { format } from 'date-fns';
 import { useJournalStore } from '../lib/store';
 import { CATEGORY_CONFIG, COLORS } from '../lib/constants';
-import { Entry, EntryCategory } from '../lib/types';
+import { Entry, EntryCategory, Dish, TrainType } from '../lib/types';
 import { fetchNearbyPlaces } from '../lib/nearby';
 import AudioRecorder from './AudioRecorder';
+
+const TRAIN_TYPES: { value: TrainType; label: string }[] = [
+  { value: 'metro', label: 'Metro' },
+  { value: 'shinkansen', label: 'Shinkansen' },
+  { value: 'local', label: 'Local' },
+  { value: 'other', label: 'Other' },
+];
 
 interface Props {
   sheetRef: React.RefObject<BottomSheet | null>;
@@ -33,6 +41,7 @@ export default function AddEntrySheet({ sheetRef, editingEntry, onEditDone, forD
   const config = useJournalStore((s) => s.config);
   const addEntry = useJournalStore((s) => s.addEntry);
   const updateEntry = useJournalStore((s) => s.updateEntry);
+  const addGoshuinStamp = useJournalStore((s) => s.addGoshuinStamp);
 
   const allTravelers = useMemo(
     () => (config ? [config.myName, ...config.partners] : []),
@@ -50,6 +59,24 @@ export default function AddEntrySheet({ sheetRef, editingEntry, onEditDone, forD
   const [nearbySuggestions, setNearbySuggestions] = useState<string[]>([]);
   const [gpsLoading, setGpsLoading] = useState(false);
 
+  // Walk-specific
+  const [stepsCount, setStepsCount] = useState('');
+
+  // Shrine-specific
+  const [hasGoshuin, setHasGoshuin] = useState(false);
+  const [goshuinPhotoUri, setGoshuinPhotoUri] = useState<string | undefined>(undefined);
+
+  // Food-specific
+  const [dishes, setDishes] = useState<Dish[]>([]);
+
+  // Engrish-specific
+  const [engrishContext, setEngrishContext] = useState('');
+
+  // Train-specific
+  const [fromStation, setFromStation] = useState('');
+  const [toStation, setToStation] = useState('');
+  const [trainType, setTrainType] = useState<TrainType>('metro');
+
   const isEditing = !!editingEntry;
 
   useEffect(() => {
@@ -62,6 +89,16 @@ export default function AddEntrySheet({ sheetRef, editingEntry, onEditDone, forD
       setTimeOffset('0');
       setPhotoUri(editingEntry.photoUri);
       setAudioUri(editingEntry.audioUri);
+      setStepsCount(editingEntry.stepsCount ? String(editingEntry.stepsCount) : '');
+      setHasGoshuin(editingEntry.hasGoshuin || false);
+      setGoshuinPhotoUri(editingEntry.goshuinPhotoUri);
+      setDishes(editingEntry.dishes || []);
+      setEngrishContext(editingEntry.engrishContext || '');
+      if (editingEntry.trainInfo) {
+        setFromStation(editingEntry.trainInfo.fromStation);
+        setToStation(editingEntry.trainInfo.toStation);
+        setTrainType(editingEntry.trainInfo.type);
+      }
     }
   }, [editingEntry]);
 
@@ -88,6 +125,14 @@ export default function AddEntrySheet({ sheetRef, editingEntry, onEditDone, forD
     setAudioUri(undefined);
     setNearbySuggestions([]);
     setGpsLoading(false);
+    setStepsCount('');
+    setHasGoshuin(false);
+    setGoshuinPhotoUri(undefined);
+    setDishes([]);
+    setEngrishContext('');
+    setFromStation('');
+    setToStation('');
+    setTrainType('metro');
   };
 
   const handleGpsLookup = async () => {
@@ -138,20 +183,76 @@ export default function AddEntrySheet({ sheetRef, editingEntry, onEditDone, forD
     }
   };
 
+  const pickGoshuinPhoto = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission needed', 'Camera access is required to take stamp photos.');
+      return;
+    }
+    const result = await ImagePicker.launchCameraAsync({
+      quality: 0.8,
+      allowsEditing: true,
+    });
+    if (!result.canceled && result.assets[0]) {
+      setGoshuinPhotoUri(result.assets[0].uri);
+    }
+  };
+
+  const addDish = () => {
+    setDishes((prev) => [...prev, { name: '', rating: undefined, comment: '' }]);
+  };
+
+  const updateDish = (index: number, updates: Partial<Dish>) => {
+    setDishes((prev) =>
+      prev.map((d, i) => (i === index ? { ...d, ...updates } : d))
+    );
+  };
+
+  const removeDish = (index: number) => {
+    setDishes((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const buildAutoText = (): string => {
+    if (!category) return '';
+    if (category === 'walk' && stepsCount) return `Walked ${stepsCount} steps`;
+    if (category === 'train' && fromStation && toStation) {
+      const tt = TRAIN_TYPES.find((t) => t.value === trainType)?.label || trainType;
+      return `${fromStation} → ${toStation} (${tt})`;
+    }
+    return CATEGORY_CONFIG[category].label;
+  };
+
   const handleSave = useCallback(() => {
-    if (!category || !text.trim() || !config) return;
+    if (!category || !config) return;
+
+    const finalText = text.trim() || buildAutoText();
+    if (!finalText) return;
+
+    const entryData: Partial<Entry> = {
+      category,
+      text: finalText,
+      location: location.trim() || undefined,
+      amountYen: amountYen ? parseInt(amountYen, 10) : undefined,
+      stepsCount: stepsCount ? parseInt(stepsCount, 10) : undefined,
+      participants,
+      photoUri,
+      audioUri,
+      hasGoshuin: category === 'shrine' ? hasGoshuin : undefined,
+      goshuinPhotoUri: category === 'shrine' && hasGoshuin ? goshuinPhotoUri : undefined,
+      dishes: category === 'food' && dishes.length > 0
+        ? dishes.filter((d) => d.name.trim())
+        : undefined,
+      engrishContext: category === 'engrish' && engrishContext.trim()
+        ? engrishContext.trim()
+        : undefined,
+      trainInfo: category === 'train' && fromStation.trim() && toStation.trim()
+        ? { fromStation: fromStation.trim(), toStation: toStation.trim(), type: trainType }
+        : undefined,
+    };
 
     if (isEditing && editingEntry) {
       const date = format(new Date(editingEntry.timestamp), 'yyyy-MM-dd');
-      updateEntry(date, editingEntry.id, {
-        category,
-        text: text.trim(),
-        location: location.trim() || undefined,
-        amountYen: amountYen ? parseInt(amountYen, 10) : undefined,
-        participants,
-        photoUri,
-        audioUri,
-      });
+      updateEntry(date, editingEntry.id, entryData);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       reset();
       onEditDone?.();
@@ -170,28 +271,40 @@ export default function AddEntrySheet({ sheetRef, editingEntry, onEditDone, forD
       now.setMinutes(now.getMinutes() - offset);
     }
 
+    const entryId = uuid();
     addEntry({
-      id: uuid(),
+      id: entryId,
       author: config.myName,
-      category,
-      text: text.trim(),
       timestamp: now.toISOString(),
-      location: location.trim() || undefined,
-      amountYen: amountYen ? parseInt(amountYen, 10) : undefined,
-      participants,
-      photoUri,
-      audioUri,
-    });
+      ...entryData,
+    } as Entry);
+
+    if (category === 'shrine' && hasGoshuin) {
+      addGoshuinStamp({
+        id: uuid(),
+        templeName: location.trim() || finalText,
+        location: location.trim() || undefined,
+        date: format(now, 'yyyy-MM-dd'),
+        photoUri: goshuinPhotoUri,
+      });
+    }
 
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     reset();
     sheetRef.current?.close();
-  }, [category, text, location, amountYen, participants, timeOffset, config, addEntry, updateEntry, sheetRef, photoUri, audioUri, isEditing, editingEntry, onEditDone]);
+  }, [category, text, location, amountYen, stepsCount, participants, timeOffset, config, addEntry, updateEntry, addGoshuinStamp, sheetRef, photoUri, audioUri, isEditing, editingEntry, onEditDone, forDate, hasGoshuin, goshuinPhotoUri, dishes, engrishContext, fromStation, toStation, trainType]);
 
   const categories = Object.entries(CATEGORY_CONFIG) as [
     EntryCategory,
     (typeof CATEGORY_CONFIG)[EntryCategory],
   ][];
+
+  const getPlaceholder = (): string => {
+    if (category === 'engrish') return 'The exact phrase you saw...';
+    if (category === 'walk') return 'Notes about your walk (optional)';
+    if (category === 'train') return 'Notes about the ride (optional)';
+    return 'What happened?';
+  };
 
   return (
     <BottomSheet
@@ -256,15 +369,77 @@ export default function AddEntrySheet({ sheetRef, editingEntry, onEditDone, forD
             </Text>
           </TouchableOpacity>
 
+          {/* Walk: steps input */}
+          {category === 'walk' && (
+            <View style={styles.stepsRow}>
+              <Text style={styles.rowLabel}>👣 Steps today</Text>
+              <TextInput
+                style={styles.stepsInput}
+                value={stepsCount}
+                onChangeText={setStepsCount}
+                placeholder="0"
+                placeholderTextColor={COLORS.textLight}
+                keyboardType="number-pad"
+                autoFocus
+              />
+            </View>
+          )}
+
+          {/* Train: from/to/type */}
+          {category === 'train' && (
+            <View style={styles.trainSection}>
+              <TextInput
+                style={styles.input}
+                value={fromStation}
+                onChangeText={setFromStation}
+                placeholder="🚉 From station"
+                placeholderTextColor={COLORS.textLight}
+                autoFocus
+              />
+              <TextInput
+                style={styles.input}
+                value={toStation}
+                onChangeText={setToStation}
+                placeholder="🚉 To station"
+                placeholderTextColor={COLORS.textLight}
+              />
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.trainTypeRow}>
+                {TRAIN_TYPES.map((tt) => (
+                  <TouchableOpacity
+                    key={tt.value}
+                    style={[styles.trainTypeChip, trainType === tt.value && styles.trainTypeChipSelected]}
+                    onPress={() => setTrainType(tt.value)}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={[styles.trainTypeText, trainType === tt.value && styles.trainTypeTextSelected]}>
+                      {tt.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          )}
+
           <TextInput
             style={styles.textInput}
             value={text}
             onChangeText={setText}
-            placeholder="What happened?"
+            placeholder={getPlaceholder()}
             placeholderTextColor={COLORS.textLight}
             multiline
-            autoFocus
+            autoFocus={category !== 'walk' && category !== 'train'}
           />
+
+          {/* Engrish: context */}
+          {category === 'engrish' && (
+            <TextInput
+              style={styles.input}
+              value={engrishContext}
+              onChangeText={setEngrishContext}
+              placeholder="📍 Where did you see it? (optional)"
+              placeholderTextColor={COLORS.textLight}
+            />
+          )}
 
           <View style={styles.locationRow}>
             <TextInput
@@ -320,6 +495,83 @@ export default function AddEntrySheet({ sheetRef, editingEntry, onEditDone, forD
             />
           )}
 
+          {/* Shrine: goshuin */}
+          {category === 'shrine' && (
+            <View style={styles.goshuinSection}>
+              <TouchableOpacity
+                style={[styles.goshuinToggle, hasGoshuin && styles.goshuinToggleActive]}
+                onPress={() => setHasGoshuin(!hasGoshuin)}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.goshuinToggleText}>
+                  {hasGoshuin ? '✅' : '⬜'} Goshuin stamp?
+                </Text>
+              </TouchableOpacity>
+              {hasGoshuin && (
+                goshuinPhotoUri ? (
+                  <View style={styles.goshuinPreview}>
+                    <Image source={{ uri: goshuinPhotoUri }} style={styles.goshuinImage} />
+                    <TouchableOpacity
+                      style={styles.removePhoto}
+                      onPress={() => setGoshuinPhotoUri(undefined)}
+                    >
+                      <Text style={styles.removePhotoText}>✕</Text>
+                    </TouchableOpacity>
+                  </View>
+                ) : (
+                  <TouchableOpacity style={styles.goshuinPhotoButton} onPress={pickGoshuinPhoto}>
+                    <Text style={styles.photoButtonText}>📷 Photo of stamp</Text>
+                  </TouchableOpacity>
+                )
+              )}
+            </View>
+          )}
+
+          {/* Food: dishes */}
+          {category === 'food' && (
+            <View style={styles.dishesSection}>
+              <Text style={styles.rowLabel}>🍽️ Rate your dishes</Text>
+              {dishes.map((dish, index) => (
+                <View key={index} style={styles.dishCard}>
+                  <View style={styles.dishHeader}>
+                    <TextInput
+                      style={styles.dishNameInput}
+                      value={dish.name}
+                      onChangeText={(val) => updateDish(index, { name: val })}
+                      placeholder="Dish name"
+                      placeholderTextColor={COLORS.textLight}
+                    />
+                    <TouchableOpacity onPress={() => removeDish(index)}>
+                      <Text style={styles.dishRemove}>✕</Text>
+                    </TouchableOpacity>
+                  </View>
+                  <View style={styles.starsRow}>
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <TouchableOpacity
+                        key={star}
+                        onPress={() => updateDish(index, { rating: dish.rating === star ? undefined : star })}
+                      >
+                        <Text style={styles.star}>
+                          {dish.rating && dish.rating >= star ? '★' : '☆'}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                  <TextInput
+                    style={styles.dishCommentInput}
+                    value={dish.comment}
+                    onChangeText={(val) => updateDish(index, { comment: val })}
+                    placeholder="Comment (optional)"
+                    placeholderTextColor={COLORS.textLight}
+                  />
+                </View>
+              ))}
+              <TouchableOpacity style={styles.addDishButton} onPress={addDish}>
+                <Text style={styles.addDishText}>+ Add Dish</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
           {category === 'sound' && (
             <AudioRecorder
               audioUri={audioUri}
@@ -333,7 +585,6 @@ export default function AddEntrySheet({ sheetRef, editingEntry, onEditDone, forD
             />
           )}
 
-          {/* Photo section */}
           {photoUri ? (
             <View style={styles.photoPreview}>
               <Image source={{ uri: photoUri }} style={styles.previewImage} />
@@ -398,9 +649,8 @@ export default function AddEntrySheet({ sheetRef, editingEntry, onEditDone, forD
           )}
 
           <TouchableOpacity
-            style={[styles.saveButton, !text.trim() && styles.saveDisabled]}
+            style={styles.saveButton}
             onPress={handleSave}
-            disabled={!text.trim()}
             activeOpacity={0.8}
           >
             <Text style={styles.saveText}>{isEditing ? 'Update ✨' : 'Save ✨'}</Text>
@@ -648,12 +898,159 @@ const styles = StyleSheet.create({
     marginTop: 8,
     marginBottom: 32,
   },
-  saveDisabled: {
-    opacity: 0.5,
-  },
   saveText: {
     fontFamily: 'Nunito_700Bold',
     fontSize: 17,
+    color: COLORS.white,
+  },
+  // Walk
+  stepsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+    paddingHorizontal: 4,
+  },
+  stepsInput: {
+    fontFamily: 'Nunito_700Bold',
+    fontSize: 22,
+    backgroundColor: COLORS.white,
+    borderRadius: 12,
+    padding: 12,
+    width: 120,
+    textAlign: 'center',
+    color: COLORS.text,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  // Shrine goshuin
+  goshuinSection: {
+    marginBottom: 12,
+  },
+  goshuinToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.white,
+    borderRadius: 12,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    marginBottom: 8,
+  },
+  goshuinToggleActive: {
+    borderColor: COLORS.green,
+    backgroundColor: COLORS.green + '15',
+  },
+  goshuinToggleText: {
+    fontFamily: 'Nunito_600SemiBold',
+    fontSize: 15,
+    color: COLORS.text,
+  },
+  goshuinPreview: {
+    borderRadius: 12,
+    overflow: 'hidden',
+    position: 'relative',
+    marginBottom: 8,
+  },
+  goshuinImage: {
+    width: '100%',
+    height: 160,
+    borderRadius: 12,
+  },
+  goshuinPhotoButton: {
+    backgroundColor: COLORS.white,
+    borderRadius: 12,
+    padding: 14,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.red + '40',
+    marginBottom: 8,
+  },
+  // Food dishes
+  dishesSection: {
+    marginBottom: 12,
+  },
+  dishCard: {
+    backgroundColor: COLORS.white,
+    borderRadius: 12,
+    padding: 12,
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  dishHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  dishNameInput: {
+    flex: 1,
+    fontFamily: 'Nunito_400Regular',
+    fontSize: 15,
+    color: COLORS.text,
+    padding: 4,
+  },
+  dishRemove: {
+    fontSize: 16,
+    color: COLORS.textLight,
+    padding: 4,
+  },
+  starsRow: {
+    flexDirection: 'row',
+    gap: 4,
+    marginTop: 4,
+    marginBottom: 4,
+  },
+  star: {
+    fontSize: 24,
+    color: COLORS.orange,
+  },
+  dishCommentInput: {
+    fontFamily: 'Nunito_400Regular',
+    fontSize: 13,
+    color: COLORS.textLight,
+    padding: 4,
+  },
+  addDishButton: {
+    marginTop: 8,
+    paddingVertical: 12,
+    alignItems: 'center',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderStyle: 'dashed',
+  },
+  addDishText: {
+    fontFamily: 'Nunito_600SemiBold',
+    fontSize: 14,
+    color: COLORS.orange,
+  },
+  // Train
+  trainSection: {
+    marginBottom: 4,
+  },
+  trainTypeRow: {
+    marginBottom: 12,
+  },
+  trainTypeChip: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: COLORS.white,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    marginRight: 8,
+  },
+  trainTypeChipSelected: {
+    backgroundColor: '#A8B8D8',
+    borderColor: '#A8B8D8',
+  },
+  trainTypeText: {
+    fontFamily: 'Nunito_600SemiBold',
+    fontSize: 14,
+    color: COLORS.textLight,
+  },
+  trainTypeTextSelected: {
     color: COLORS.white,
   },
 });

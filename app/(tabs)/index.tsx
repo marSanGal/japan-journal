@@ -20,6 +20,7 @@ import EntryCard from '../../components/EntryCard';
 import FAB from '../../components/FAB';
 import AddEntrySheet from '../../components/AddEntrySheet';
 import SyncPanel from '../../components/SyncPanel';
+import ExtraPhotos from '../../components/ExtraPhotos';
 import { fetchWeatherForDate } from '../../lib/weather';
 import { fetchLiveRate } from '../../lib/currency';
 
@@ -99,26 +100,29 @@ export default function TodayScreen() {
           </View>
         }
         ListFooterComponent={
-          entries.length > 0 ? (
-            <View style={styles.footer}>
-              {config.partners.length > 0 && (
+          <View>
+            <ExtraPhotos date={today} />
+            {entries.length > 0 && (
+              <View style={styles.footer}>
+                {config.partners.length > 0 && (
+                  <TouchableOpacity
+                    style={styles.syncButton}
+                    onPress={() => setSyncVisible(true)}
+                  >
+                    <Text style={styles.syncText}>🔄 Partner Sync</Text>
+                  </TouchableOpacity>
+                )}
                 <TouchableOpacity
-                  style={styles.syncButton}
-                  onPress={() => setSyncVisible(true)}
+                  style={styles.chapterButton}
+                  onPress={() => router.push(`/chapter/${today}`)}
                 >
-                  <Text style={styles.syncText}>🔄 Partner Sync</Text>
+                  <Text style={styles.chapterButtonText}>
+                    📝 Write Tonight's Chapter
+                  </Text>
                 </TouchableOpacity>
-              )}
-              <TouchableOpacity
-                style={styles.chapterButton}
-                onPress={() => router.push(`/chapter/${today}`)}
-              >
-                <Text style={styles.chapterButtonText}>
-                  📝 Write Tonight's Chapter
-                </Text>
-              </TouchableOpacity>
-            </View>
-          ) : null
+              </View>
+            )}
+          </View>
         }
         contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}

@@ -57,6 +57,35 @@ export default function EntryCard({ entry, onLongPress, onPress }: Props) {
           </View>
         </View>
         <Text style={styles.text}>{entry.text}</Text>
+        {entry.trainInfo && (
+          <View style={styles.trainInfoRow}>
+            <Text style={styles.trainRoute}>
+              🚉 {entry.trainInfo.fromStation} → {entry.trainInfo.toStation}
+            </Text>
+            <View style={styles.trainTypeBadge}>
+              <Text style={styles.trainTypeLabel}>{entry.trainInfo.type}</Text>
+            </View>
+          </View>
+        )}
+        {entry.dishes && entry.dishes.length > 0 && (
+          <View style={styles.dishList}>
+            {entry.dishes.map((dish, i) => (
+              <View key={i} style={styles.dishRow}>
+                <Text style={styles.dishName}>
+                  🍽️ {dish.name}
+                  {dish.rating ? ' ' + '★'.repeat(dish.rating) + '☆'.repeat(5 - dish.rating) : ''}
+                </Text>
+                {dish.comment ? <Text style={styles.dishComment}>{dish.comment}</Text> : null}
+              </View>
+            ))}
+          </View>
+        )}
+        {entry.stepsCount && (
+          <Text style={styles.stepsText}>👣 {entry.stepsCount.toLocaleString()} steps</Text>
+        )}
+        {entry.hasGoshuin && (
+          <Text style={styles.goshuinBadge}>⛩️ Goshuin collected</Text>
+        )}
         {entry.location && (
           <View onStartShouldSetResponder={() => true}>
             <TouchableOpacity
@@ -181,5 +210,58 @@ const styles = StyleSheet.create({
     height: 160,
     borderRadius: 10,
     marginTop: 8,
+  },
+  trainInfoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 4,
+  },
+  trainRoute: {
+    fontFamily: 'Nunito_600SemiBold',
+    fontSize: 13,
+    color: '#A8B8D8',
+  },
+  trainTypeBadge: {
+    backgroundColor: '#A8B8D8' + '30',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 8,
+  },
+  trainTypeLabel: {
+    fontFamily: 'Nunito_600SemiBold',
+    fontSize: 11,
+    color: '#A8B8D8',
+    textTransform: 'capitalize',
+  },
+  dishList: {
+    marginTop: 4,
+    gap: 2,
+  },
+  dishRow: {
+    gap: 1,
+  },
+  dishName: {
+    fontFamily: 'Nunito_600SemiBold',
+    fontSize: 12,
+    color: COLORS.orange,
+  },
+  dishComment: {
+    fontFamily: 'Nunito_400Regular',
+    fontSize: 11,
+    color: COLORS.textLight,
+    marginLeft: 24,
+  },
+  stepsText: {
+    fontFamily: 'Nunito_600SemiBold',
+    fontSize: 13,
+    color: '#B8C8A8',
+    marginTop: 2,
+  },
+  goshuinBadge: {
+    fontFamily: 'Nunito_600SemiBold',
+    fontSize: 12,
+    color: COLORS.red,
+    marginTop: 2,
   },
 });

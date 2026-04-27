@@ -1,17 +1,23 @@
-import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import { DayLog } from './types';
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: false,
-    shouldSetBadge: false,
-  }),
-});
+let Notifications: typeof import('expo-notifications') | null = null;
+
+try {
+  Notifications = require('expo-notifications');
+  Notifications?.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldPlaySound: false,
+      shouldSetBadge: false,
+    }),
+  });
+} catch {
+  // expo-notifications unavailable in Expo Go SDK 53+
+}
 
 export const requestPermissions = async (): Promise<boolean> => {
-  if (!Device.isDevice) return false;
+  if (!Device.isDevice || !Notifications) return false;
 
   const { status: existing } = await Notifications.getPermissionsAsync();
   if (existing === 'granted') return true;
@@ -33,6 +39,7 @@ export const scheduleAnniversaryNotifications = async (
   days: Record<string, DayLog>,
   travelers: string[]
 ): Promise<number> => {
+  if (!Notifications) return 0;
   const granted = await requestPermissions();
   if (!granted) return 0;
 
