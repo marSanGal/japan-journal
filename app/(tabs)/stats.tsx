@@ -3,7 +3,7 @@ import { useRouter } from 'expo-router';
 import { format } from 'date-fns';
 import { useJournalStore } from '../../lib/store';
 import { COLORS, CATEGORY_CONFIG, getTravelerColor, getCategoryDisplay } from '../../lib/constants';
-import { formatYenWithUsd } from '../../lib/currency';
+import { formatYenWithGbp } from '../../lib/currency';
 import { EntryCategory, Entry } from '../../lib/types';
 
 export default function StatsScreen() {
@@ -13,8 +13,6 @@ export default function StatsScreen() {
   const goshuinCount = useJournalStore((s) => s.goshuinStamps.length);
   const konbiniCount = useJournalStore((s) => s.konbiniChecked.length);
   const manholeCount = useJournalStore((s) => s.manholeCovers.length);
-  const persona = useJournalStore((s) => s.narratorPersona);
-  const pastTripsCount = useJournalStore((s) => s.pastTrips.length);
   const customCategories = useJournalStore((s) => s.customCategories);
 
   const { width: screenWidth } = useWindowDimensions();
@@ -104,7 +102,7 @@ export default function StatsScreen() {
         <StatBox label="Total Entries" value={totalEntries.toString()} icon="📝" width={tileWidth} />
         <StatBox label="Days Logged" value={daysLogged.toString()} icon="📅" width={tileWidth} />
         <StatBox label="Chapters" value={chaptersWritten.toString()} icon="📖" width={tileWidth} />
-        <StatBox label="Total Spent" value={totalYen > 0 ? formatYenWithUsd(totalYen) : '¥0'} icon="💴" width={tileWidth} />
+        <StatBox label="Total Spent" value={totalYen > 0 ? formatYenWithGbp(totalYen) : '¥0'} icon="💴" width={tileWidth} />
         <StatBox label="Total Steps" value={totalSteps > 0 ? totalSteps.toLocaleString() : '0'} icon="👣" width={tileWidth} />
         <StatBox label="Eki Stamps" value={totalEkiStamps.toString()} icon="🔖" width={tileWidth} />
         {customCategories
@@ -247,37 +245,19 @@ export default function StatsScreen() {
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.extrasButton}
-            onPress={() => router.push('/extras/persona')}
-          >
-            <Text style={styles.extrasIcon}>🎭</Text>
-            <Text style={styles.extrasLabel}>Narrator</Text>
-            <Text style={styles.extrasCount}>{persona === 'ghibli' ? 'Ghibli' : '✓'}</Text>
-          </TouchableOpacity>
-        </View>
-        <View style={styles.extrasRow}>
-          <TouchableOpacity
-            style={styles.extrasButton}
             onPress={() => router.push('/extras/awards')}
           >
             <Text style={styles.extrasIcon}>🏆</Text>
             <Text style={styles.extrasLabel}>Awards</Text>
           </TouchableOpacity>
+        </View>
+        <View style={styles.extrasRow}>
           <TouchableOpacity
             style={styles.extrasButton}
             onPress={() => router.push('/extras/collage')}
           >
             <Text style={styles.extrasIcon}>🖼️</Text>
             <Text style={styles.extrasLabel}>Collage</Text>
-          </TouchableOpacity>
-        </View>
-        <View style={styles.extrasRow}>
-          <TouchableOpacity
-            style={styles.extrasButton}
-            onPress={() => router.push('/extras/past-trips')}
-          >
-            <Text style={styles.extrasIcon}>🗾</Text>
-            <Text style={styles.extrasLabel}>Trips</Text>
-            <Text style={styles.extrasCount}>{pastTripsCount} past</Text>
           </TouchableOpacity>
         </View>
       </View>

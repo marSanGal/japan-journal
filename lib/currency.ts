@@ -1,4 +1,4 @@
-import { USD_PER_YEN } from './constants';
+import { GBP_PER_YEN } from './constants';
 
 let liveRate: number | null = null;
 let lastFetched = 0;
@@ -13,21 +13,21 @@ export const fetchLiveRate = async (): Promise<number> => {
     );
     if (!res.ok) throw new Error('rate fetch failed');
     const data = await res.json();
-    const usd = data?.rates?.USD;
-    if (typeof usd === 'number') {
-      liveRate = usd;
+    const gbp = data?.rates?.GBP;
+    if (typeof gbp === 'number') {
+      liveRate = gbp;
       lastFetched = Date.now();
-      return usd;
+      return gbp;
     }
   } catch {
     // fall through to static fallback
   }
-  return USD_PER_YEN;
+  return GBP_PER_YEN;
 };
 
-const getRate = (): number => liveRate ?? USD_PER_YEN;
+const getRate = (): number => liveRate ?? GBP_PER_YEN;
 
-export const yenToUsd = (yen: number): string => {
+export const yenToGbp = (yen: number): string => {
   return (yen * getRate()).toFixed(2);
 };
 
@@ -35,6 +35,6 @@ export const formatYen = (yen: number): string => {
   return `¥${yen.toLocaleString()}`;
 };
 
-export const formatYenWithUsd = (yen: number): string => {
-  return `¥${yen.toLocaleString()} (~$${yenToUsd(yen)})`;
+export const formatYenWithGbp = (yen: number): string => {
+  return `¥${yen.toLocaleString()} (~£${yenToGbp(yen)})`;
 };

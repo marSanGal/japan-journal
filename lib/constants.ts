@@ -57,7 +57,7 @@ export const WEATHER_OPTIONS = [
   { label: 'Perfect', icon: '🌸' },
 ];
 
-export const USD_PER_YEN = 0.0067;
+export const GBP_PER_YEN = 0.0050;
 
 export const CUSTOM_COLOR_OPTIONS = [
   '#F4A7BB', '#A8D4E6', '#A8D8A8', '#C5A8D8',

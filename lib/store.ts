@@ -15,10 +15,12 @@ interface JournalState {
   manholeCovers: ManholeEntry[];
   ekiStamps: EkiStamp[];
   customCategories: CustomCategory[];
+  showGbp: boolean;
   narratorPersona: string;
   pastTrips: { name: string; config: TripConfig; days: Record<string, DayLog>; epilogue: string | null }[];
 
   setConfig: (config: TripConfig) => void;
+  updateConfig: (updates: Partial<TripConfig>) => void;
   addEntry: (entry: Entry) => void;
   updateEntry: (date: string, entryId: string, updates: Partial<Entry>) => void;
   deleteEntry: (date: string, entryId: string) => void;
@@ -42,6 +44,7 @@ interface JournalState {
   addCustomCategory: (cat: CustomCategory) => void;
   updateCustomCategory: (id: string, updates: Partial<CustomCategory>) => void;
   deleteCustomCategory: (id: string) => void;
+  setShowGbp: (val: boolean) => void;
   setNarratorPersona: (persona: string) => void;
   archiveTrip: () => void;
   getDayLog: (date: string) => DayLog;
@@ -65,10 +68,17 @@ export const useJournalStore = create<JournalState>()(
       manholeCovers: [],
       ekiStamps: [],
       customCategories: [],
+      showGbp: true,
       narratorPersona: 'ghibli',
       pastTrips: [],
 
       setConfig: (config) => set({ config }),
+
+      updateConfig: (updates) =>
+        set((state) => {
+          if (!state.config) return {};
+          return { config: { ...state.config, ...updates } };
+        }),
 
       addEntry: (entry) =>
         set((state) => {
@@ -252,6 +262,8 @@ export const useJournalStore = create<JournalState>()(
         set((state) => ({
           customCategories: state.customCategories.filter((c) => c.id !== id),
         })),
+
+      setShowGbp: (val) => set({ showGbp: val }),
 
       setNarratorPersona: (persona) => set({ narratorPersona: persona }),
 
