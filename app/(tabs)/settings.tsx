@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,8 +8,12 @@ import {
   StyleSheet,
   Alert,
   Switch,
+  ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { File, Paths } from 'expo-file-system';
+import * as Sharing from 'expo-sharing';
+import * as DocumentPicker from 'expo-document-picker';
 import { useJournalStore } from '../../lib/store';
 import { COLORS, TRAVELER_COLORS, toDisplayDate, toISODate } from '../../lib/constants';
 import { getPersona } from '../../lib/personas';
@@ -25,6 +29,9 @@ export default function SettingsScreen() {
   const customCategories = useJournalStore((s) => s.customCategories);
   const deleteCustomCategory = useJournalStore((s) => s.deleteCustomCategory);
   const pastTripsCount = useJournalStore((s) => s.pastTrips.length);
+  const exportData = useJournalStore((s) => s.exportData);
+  const importData = useJournalStore((s) => s.importData);
+  const lastBackupTimestamp = useJournalStore((s) => s.lastBackupTimestamp);
 
   const [myName, setMyName] = useState(config?.myName || '');
   const [partners, setPartners] = useState<string[]>(config?.partners || []);
@@ -91,6 +98,65 @@ export default function SettingsScreen() {
       { text: 'Delete', style: 'destructive', onPress: () => deleteCustomCategory(id) },
     ]);
   };
+
+  const [backupBusy, setBackupBusy] = useState(false);
+
+  const handleExport = useCallback(async () => {
+    setBackupBusy(true);
+    try {
+      const json = exportData();
+      const backupFile = new File(Paths.cache, 'japan-journal-backup.json');
+      backupFile.write(json);
+      await Sharing.shareAsync(backupFile.uri, {
+        mimeType: 'application/json',
+        dialogTitle: 'Save Journal Backup',
+      });
+    } catch (e: any) {
+      Alert.alert('Export failed', e.message);
+    } finally {
+      setBackupBusy(false);
+    }
+  }, [exportData]);
+
+  const handleImport = useCallback(async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: 'application/json',
+        copyToCacheDirectory: true,
+      });
+      if (result.canceled) return;
+
+      const picked = result.assets[0];
+      const pickedFile = new File(picked.uri);
+      const json = await pickedFile.text();
+
+      Alert.alert(
+        'Restore backup?',
+        'This will replace ALL current data with the backup. This cannot be undone.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Restore',
+            style: 'destructive',
+            onPress: () => {
+              try {
+                importData(json);
+                Alert.alert('Restored', 'Backup restored successfully.');
+              } catch (e: any) {
+                Alert.alert('Import failed', e.message);
+              }
+            },
+          },
+        ]
+      );
+    } catch (e: any) {
+      Alert.alert('Import failed', e.message);
+    }
+  }, [importData]);
+
+  const formattedBackupTime = lastBackupTimestamp
+    ? new Date(lastBackupTimestamp).toLocaleString()
+    : 'Never';
 
   const personaInfo = getPersona(persona);
 
@@ -207,6 +273,34 @@ export default function SettingsScreen() {
 
         <TouchableOpacity style={styles.archiveBtn} onPress={handleArchive} activeOpacity={0.7}>
           <Text style={styles.archiveBtnText}>Archive This Trip</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Backup & Restore */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Backup & Restore</Text>
+
+        <Text style={styles.backupTimestamp}>Last auto-backup: {formattedBackupTime}</Text>
+
+        <TouchableOpacity
+          style={styles.exportBtn}
+          onPress={handleExport}
+          activeOpacity={0.7}
+          disabled={backupBusy}
+        >
+          {backupBusy ? (
+            <ActivityIndicator color={COLORS.white} size="small" />
+          ) : (
+            <Text style={styles.exportBtnText}>Export Backup</Text>
+          )}
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.importBtn}
+          onPress={handleImport}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.importBtnText}>Import Backup</Text>
         </TouchableOpacity>
       </View>
 
@@ -424,6 +518,36 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: COLORS.textLight,
     padding: 4,
+  },
+  backupTimestamp: {
+    fontFamily: 'Nunito_400Regular',
+    fontSize: 12,
+    color: COLORS.textLight,
+    marginBottom: 12,
+  },
+  exportBtn: {
+    backgroundColor: COLORS.blue,
+    borderRadius: 14,
+    padding: 16,
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  exportBtnText: {
+    fontFamily: 'Nunito_700Bold',
+    fontSize: 15,
+    color: COLORS.white,
+  },
+  importBtn: {
+    borderRadius: 14,
+    padding: 16,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.blue,
+  },
+  importBtnText: {
+    fontFamily: 'Nunito_700Bold',
+    fontSize: 15,
+    color: COLORS.blue,
   },
   bottomPad: {
     height: 40,

@@ -50,6 +50,10 @@ interface JournalState {
   getDayLog: (date: string) => DayLog;
   getChapterNumber: (date: string) => number;
   getTodayDate: () => string;
+
+  lastBackupTimestamp: string | null;
+  exportData: () => string;
+  importData: (json: string) => void;
 }
 
 const ensureDay = (days: Record<string, DayLog>, date: string): DayLog => {
@@ -71,6 +75,7 @@ export const useJournalStore = create<JournalState>()(
       showGbp: true,
       narratorPersona: 'ghibli',
       pastTrips: [],
+      lastBackupTimestamp: null,
 
       setConfig: (config) => set({ config }),
 
@@ -289,6 +294,46 @@ export const useJournalStore = create<JournalState>()(
           };
         }),
 
+
+      exportData: () => {
+        const state = get();
+        return JSON.stringify({
+          version: 1,
+          exportedAt: new Date().toISOString(),
+          config: state.config,
+          days: state.days,
+          epilogue: state.epilogue,
+          goshuinStamps: state.goshuinStamps,
+          konbiniChecked: state.konbiniChecked,
+          manholeCovers: state.manholeCovers,
+          ekiStamps: state.ekiStamps,
+          customCategories: state.customCategories,
+          showGbp: state.showGbp,
+          narratorPersona: state.narratorPersona,
+          pastTrips: state.pastTrips,
+        });
+      },
+
+      importData: (json) => {
+        const data = JSON.parse(json);
+        if (!data || typeof data !== 'object' || !data.version) {
+          throw new Error('Invalid backup file');
+        }
+        set({
+          config: data.config ?? null,
+          days: data.days ?? {},
+          epilogue: data.epilogue ?? null,
+          goshuinStamps: data.goshuinStamps ?? [],
+          konbiniChecked: data.konbiniChecked ?? [],
+          manholeCovers: data.manholeCovers ?? [],
+          ekiStamps: data.ekiStamps ?? [],
+          customCategories: data.customCategories ?? [],
+          showGbp: data.showGbp ?? true,
+          narratorPersona: data.narratorPersona ?? 'ghibli',
+          pastTrips: data.pastTrips ?? [],
+          lastBackupTimestamp: new Date().toISOString(),
+        });
+      },
 
       getDayLog: (date) => {
         const state = get();

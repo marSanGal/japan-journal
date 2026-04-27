@@ -6,6 +6,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { COLORS } from '../lib/constants';
+import { initAutoBackup } from '../lib/backup';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -22,6 +23,10 @@ export default function RootLayout() {
       SplashScreen.hideAsync();
     }
   }, [fontsLoaded]);
+
+  useEffect(() => {
+    return initAutoBackup();
+  }, []);
 
   if (!fontsLoaded) return null;
 
