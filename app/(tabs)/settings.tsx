@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useJournalStore } from '../../lib/store';
-import { COLORS, TRAVELER_COLORS } from '../../lib/constants';
+import { COLORS, TRAVELER_COLORS, toDisplayDate, toISODate } from '../../lib/constants';
 import { getPersona } from '../../lib/personas';
 
 export default function SettingsScreen() {
@@ -28,15 +28,15 @@ export default function SettingsScreen() {
 
   const [myName, setMyName] = useState(config?.myName || '');
   const [partners, setPartners] = useState<string[]>(config?.partners || []);
-  const [startDate, setStartDate] = useState(config?.startDate || '');
-  const [totalDays, setTotalDays] = useState(config?.totalDays?.toString() || '21');
+  const [startDate, setStartDate] = useState(toDisplayDate(config?.startDate || ''));
+  const [endDate, setEndDate] = useState(toDisplayDate(config?.endDate || ''));
 
   useEffect(() => {
     if (config) {
       setMyName(config.myName);
       setPartners(config.partners);
-      setStartDate(config.startDate);
-      setTotalDays(config.totalDays.toString());
+      setStartDate(toDisplayDate(config.startDate));
+      setEndDate(toDisplayDate(config.endDate));
     }
   }, [config]);
 
@@ -143,22 +143,18 @@ export default function SettingsScreen() {
           style={styles.input}
           value={startDate}
           onChangeText={setStartDate}
-          onBlur={() => startDate.trim() && saveField('startDate', startDate.trim())}
-          placeholder="YYYY-MM-DD"
+          onBlur={() => startDate.trim() && saveField('startDate', toISODate(startDate.trim()))}
+          placeholder="DD-MM-YYYY"
           placeholderTextColor={COLORS.textLight}
         />
 
-        <Text style={styles.label}>Trip Length (days)</Text>
+        <Text style={styles.label}>End Date</Text>
         <TextInput
           style={styles.input}
-          value={totalDays}
-          onChangeText={setTotalDays}
-          onBlur={() => {
-            const parsed = parseInt(totalDays, 10);
-            if (parsed > 0) saveField('totalDays', parsed);
-          }}
-          keyboardType="number-pad"
-          placeholder="21"
+          value={endDate}
+          onChangeText={setEndDate}
+          onBlur={() => endDate.trim() && saveField('endDate', toISODate(endDate.trim()))}
+          placeholder="DD-MM-YYYY"
           placeholderTextColor={COLORS.textLight}
         />
       </View>

@@ -1,4 +1,5 @@
-import { EntryCategory, CustomCategory } from './types';
+import { differenceInDays, parseISO } from 'date-fns';
+import { EntryCategory, CustomCategory, TripConfig } from './types';
 
 export const COLORS = {
   background: '#FFF0F5',
@@ -58,6 +59,22 @@ export const WEATHER_OPTIONS = [
 ];
 
 export const GBP_PER_YEN = 0.0050;
+
+export const getTripDays = (config: TripConfig): number => {
+  return differenceInDays(parseISO(config.endDate), parseISO(config.startDate)) + 1;
+};
+
+export const toDisplayDate = (iso: string): string => {
+  if (!iso) return '';
+  const [y, m, d] = iso.split('-');
+  return `${d}-${m}-${y}`;
+};
+
+export const toISODate = (display: string): string => {
+  if (!display) return '';
+  const [d, m, y] = display.split('-');
+  return `${y}-${m}-${d}`;
+};
 
 export const CUSTOM_COLOR_OPTIONS = [
   '#F4A7BB', '#A8D4E6', '#A8D8A8', '#C5A8D8',

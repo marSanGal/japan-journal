@@ -2,7 +2,7 @@ import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import { documentDirectory, moveAsync } from 'expo-file-system/legacy';
 import { DayLog, TripConfig, Entry } from './types';
-import { CATEGORY_CONFIG } from './constants';
+import { CATEGORY_CONFIG, getTripDays } from './constants';
 import { format, addDays } from 'date-fns';
 
 const entryToHtml = (entry: Entry): string => {
@@ -41,7 +41,7 @@ export const generateScrapbookHtml = (
   const start = new Date(config.startDate + 'T12:00:00');
   let chaptersHtml = '';
 
-  for (let i = 0; i < config.totalDays; i++) {
+  for (let i = 0; i < getTripDays(config); i++) {
     const date = addDays(start, i);
     const dateStr = format(date, 'yyyy-MM-dd');
     const day = days[dateStr];

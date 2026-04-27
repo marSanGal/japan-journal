@@ -1,6 +1,6 @@
 import { View, Text, TouchableOpacity, FlatList, StyleSheet, Alert } from 'react-native';
 import { useJournalStore } from '../../lib/store';
-import { COLORS } from '../../lib/constants';
+import { COLORS, getTripDays, toDisplayDate } from '../../lib/constants';
 
 export default function PastTripsScreen() {
   const config = useJournalStore((s) => s.config);
@@ -54,7 +54,7 @@ export default function PastTripsScreen() {
                     {[config.myName, ...config.partners].join(' & ')}
                   </Text>
                   <Text style={styles.tripMeta}>
-                    Started {config.startDate} · {config.totalDays} days
+                    Started {toDisplayDate(config.startDate)} · {getTripDays(config)} days
                   </Text>
                   <Text style={styles.tripStats}>
                     {currentEntryCount} entries · {currentChapterCount} chapters
@@ -93,7 +93,7 @@ export default function PastTripsScreen() {
                 🗾 {[item.config.myName, ...item.config.partners].join(' & ')}
               </Text>
               <Text style={styles.pastMeta}>
-                {item.config.startDate} · {item.config.totalDays} days
+                {toDisplayDate(item.config.startDate)} · {getTripDays(item.config)} days
               </Text>
               <Text style={styles.pastStats}>
                 {entryCount} entries · {chapterCount} chapters

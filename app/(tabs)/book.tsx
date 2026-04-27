@@ -12,7 +12,7 @@ import { router } from 'expo-router';
 import { format, addDays, isBefore, startOfDay } from 'date-fns';
 import * as Haptics from 'expo-haptics';
 import { useJournalStore } from '../../lib/store';
-import { COLORS } from '../../lib/constants';
+import { COLORS, getTripDays } from '../../lib/constants';
 import { generateEpilogue } from '../../lib/openai';
 import { exportPdf } from '../../lib/export-pdf';
 import ChapterCard from '../../components/ChapterCard';
@@ -38,7 +38,7 @@ export default function BookScreen() {
   const start = new Date(config.startDate + 'T12:00:00');
   const chapters: ChapterItem[] = [];
 
-  for (let i = 0; i < config.totalDays; i++) {
+  for (let i = 0; i < getTripDays(config); i++) {
     const date = addDays(start, i);
     if (isBefore(today, startOfDay(date)) && i > 0) break;
     const dateStr = format(date, 'yyyy-MM-dd');

@@ -39,7 +39,7 @@ export interface TripConfig {
   myName: string;
   partners: string[];
   startDate: string;
-  totalDays: number;
+  endDate: string;
 }
 
 export interface Entry {

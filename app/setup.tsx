@@ -12,7 +12,7 @@ import {
 import { router } from 'expo-router';
 import { format } from 'date-fns';
 import { useJournalStore } from '../lib/store';
-import { COLORS, TRAVELER_COLORS } from '../lib/constants';
+import { COLORS, TRAVELER_COLORS, toDisplayDate, toISODate } from '../lib/constants';
 
 export default function SetupScreen() {
   const setConfig = useJournalStore((s) => s.setConfig);
@@ -20,8 +20,8 @@ export default function SetupScreen() {
 
   const [myName, setMyName] = useState('');
   const [partners, setPartners] = useState<string[]>(['']);
-  const [startDate, setStartDate] = useState(format(new Date(), 'yyyy-MM-dd'));
-  const [totalDays, setTotalDays] = useState('21');
+  const [startDate, setStartDate] = useState(format(new Date(), 'dd-MM-yyyy'));
+  const [endDate, setEndDate] = useState('');
 
   useEffect(() => {
     if (existingConfig) {
@@ -31,7 +31,7 @@ export default function SetupScreen() {
 
   if (existingConfig) return null;
 
-  const canSave = myName.trim() && startDate && totalDays;
+  const canSave = myName.trim() && startDate && endDate;
 
   const handleSave = () => {
     if (!canSave) return;
@@ -41,8 +41,8 @@ export default function SetupScreen() {
     setConfig({
       myName: myName.trim(),
       partners: validPartners,
-      startDate,
-      totalDays: parseInt(totalDays, 10) || 21,
+      startDate: toISODate(startDate),
+      endDate: toISODate(endDate),
     });
     router.replace('/(tabs)');
   };
@@ -126,19 +126,18 @@ export default function SetupScreen() {
             style={styles.input}
             value={startDate}
             onChangeText={setStartDate}
-            placeholder="YYYY-MM-DD"
+            placeholder="DD-MM-YYYY"
             placeholderTextColor={COLORS.textLight}
           />
         </View>
 
         <View style={styles.field}>
-          <Text style={styles.label}>Trip Length (days)</Text>
+          <Text style={styles.label}>End Date</Text>
           <TextInput
             style={styles.input}
-            value={totalDays}
-            onChangeText={setTotalDays}
-            placeholder="21"
-            keyboardType="number-pad"
+            value={endDate}
+            onChangeText={setEndDate}
+            placeholder="DD-MM-YYYY"
             placeholderTextColor={COLORS.textLight}
           />
         </View>
