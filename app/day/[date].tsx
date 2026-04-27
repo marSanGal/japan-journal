@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback } from 'react';
+import { useRef, useState, useCallback, useEffect } from 'react';
 import {
   View,
   FlatList,
@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
+  BackHandler,
 } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import BottomSheet from '@gorhom/bottom-sheet';
@@ -27,6 +28,16 @@ export default function DayEditorScreen() {
 
   const sheetRef = useRef<BottomSheet>(null);
   const [editingEntry, setEditingEntry] = useState<Entry | null>(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
+
+  useEffect(() => {
+    if (!sheetOpen) return;
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      sheetRef.current?.close();
+      return true;
+    });
+    return () => sub.remove();
+  }, [sheetOpen]);
 
   if (!date || !config) return null;
 
@@ -97,6 +108,7 @@ export default function DayEditorScreen() {
         editingEntry={editingEntry}
         onEditDone={() => setEditingEntry(null)}
         forDate={date}
+        onSheetChange={(index) => setSheetOpen(index >= 0)}
       />
     </View>
   );

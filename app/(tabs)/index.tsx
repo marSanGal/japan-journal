@@ -8,6 +8,7 @@ import {
   Alert,
   Modal,
   Pressable,
+  BackHandler,
 } from 'react-native';
 import { router } from 'expo-router';
 import BottomSheet from '@gorhom/bottom-sheet';
@@ -37,6 +38,16 @@ export default function TodayScreen() {
   const [syncVisible, setSyncVisible] = useState(false);
   const [weatherModalVisible, setWeatherModalVisible] = useState(false);
   const [editingEntry, setEditingEntry] = useState<Entry | null>(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
+
+  useEffect(() => {
+    if (!sheetOpen) return;
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      sheetRef.current?.close();
+      return true;
+    });
+    return () => sub.remove();
+  }, [sheetOpen]);
 
   const entries = dayLog?.entries || [];
 
@@ -137,6 +148,7 @@ export default function TodayScreen() {
         sheetRef={sheetRef}
         editingEntry={editingEntry}
         onEditDone={() => setEditingEntry(null)}
+        onSheetChange={(index) => setSheetOpen(index >= 0)}
       />
       <SyncPanel
         date={today}

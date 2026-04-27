@@ -45,9 +45,10 @@ interface Props {
   editingEntry?: Entry | null;
   onEditDone?: () => void;
   forDate?: string;
+  onSheetChange?: (index: number) => void;
 }
 
-export default function AddEntrySheet({ sheetRef, editingEntry, onEditDone, forDate }: Props) {
+export default function AddEntrySheet({ sheetRef, editingEntry, onEditDone, forDate, onSheetChange }: Props) {
   const config = useJournalStore((s) => s.config);
   const addEntry = useJournalStore((s) => s.addEntry);
   const updateEntry = useJournalStore((s) => s.updateEntry);
@@ -451,6 +452,7 @@ export default function AddEntrySheet({ sheetRef, editingEntry, onEditDone, forD
       backgroundStyle={styles.sheetBg}
       handleIndicatorStyle={styles.handle}
       onChange={(index) => {
+        onSheetChange?.(index);
         if (index === -1) {
           reset();
           onEditDone?.();
