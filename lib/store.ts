@@ -16,7 +16,6 @@ interface JournalState {
   ekiStamps: EkiStamp[];
   narratorPersona: string;
   pastTrips: { name: string; config: TripConfig; days: Record<string, DayLog>; epilogue: string | null }[];
-  anniversaryScheduled: boolean;
 
   setConfig: (config: TripConfig) => void;
   addEntry: (entry: Entry) => void;
@@ -38,7 +37,6 @@ interface JournalState {
   removeExtraPhoto: (date: string, uri: string) => void;
   setNarratorPersona: (persona: string) => void;
   archiveTrip: () => void;
-  setAnniversaryScheduled: (val: boolean) => void;
   getDayLog: (date: string) => DayLog;
   getChapterNumber: (date: string) => number;
   getTodayDate: () => string;
@@ -61,7 +59,6 @@ export const useJournalStore = create<JournalState>()(
       ekiStamps: [],
       narratorPersona: 'ghibli',
       pastTrips: [],
-      anniversaryScheduled: false,
 
       setConfig: (config) => set({ config }),
 
@@ -231,11 +228,9 @@ export const useJournalStore = create<JournalState>()(
             konbiniChecked: [],
             manholeCovers: [],
             ekiStamps: [],
-            anniversaryScheduled: false,
           };
         }),
 
-      setAnniversaryScheduled: (val) => set({ anniversaryScheduled: val }),
 
       getDayLog: (date) => {
         const state = get();

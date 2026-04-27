@@ -102,7 +102,7 @@ export default function AddEntrySheet({ sheetRef, editingEntry, onEditDone, forD
     }
   }, [editingEntry]);
 
-  const snapPoints = useMemo(() => ['50%', '85%'], []);
+  const snapPoints = useMemo(() => ['65%', '90%'], []);
 
   const toggleParticipant = useCallback((name: string) => {
     setParticipants((prev) => {

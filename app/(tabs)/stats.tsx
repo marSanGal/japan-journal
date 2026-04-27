@@ -1,11 +1,10 @@
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { format } from 'date-fns';
 import { useJournalStore } from '../../lib/store';
 import { COLORS, CATEGORY_CONFIG, getTravelerColor } from '../../lib/constants';
 import { formatYenWithUsd } from '../../lib/currency';
 import { EntryCategory, Entry } from '../../lib/types';
-import { scheduleAnniversaryNotifications } from '../../lib/anniversary';
 
 export default function StatsScreen() {
   const router = useRouter();
@@ -15,27 +14,8 @@ export default function StatsScreen() {
   const konbiniCount = useJournalStore((s) => s.konbiniChecked.length);
   const manholeCount = useJournalStore((s) => s.manholeCovers.length);
   const ekiStampCount = useJournalStore((s) => s.ekiStamps.length);
-  const anniversaryScheduled = useJournalStore((s) => s.anniversaryScheduled);
-  const setAnniversaryScheduled = useJournalStore((s) => s.setAnniversaryScheduled);
   const persona = useJournalStore((s) => s.narratorPersona);
   const pastTripsCount = useJournalStore((s) => s.pastTrips.length);
-
-  const handleAnniversary = async () => {
-    const travelers = [config.myName, ...config.partners];
-    const count = await scheduleAnniversaryNotifications(days, travelers);
-    if (count > 0) {
-      setAnniversaryScheduled(true);
-      Alert.alert(
-        '🌸 Anniversary Mode On',
-        `Scheduled ${count} notifications — one year from each day's chapter.`
-      );
-    } else {
-      Alert.alert(
-        'No chapters yet',
-        'Write some chapters first, then come back to schedule anniversary reminders.'
-      );
-    }
-  };
 
   if (!config) return null;
 
@@ -238,20 +218,6 @@ export default function StatsScreen() {
             <Text style={styles.extrasCount}>{pastTripsCount} past</Text>
           </TouchableOpacity>
         </View>
-        <TouchableOpacity
-          style={[
-            styles.anniversaryButton,
-            anniversaryScheduled && styles.anniversaryDone,
-          ]}
-          onPress={handleAnniversary}
-          disabled={anniversaryScheduled}
-        >
-          <Text style={styles.anniversaryText}>
-            {anniversaryScheduled
-              ? '🌸 Anniversary notifications scheduled!'
-              : '🌸 Enable Anniversary Reminders'}
-          </Text>
-        </TouchableOpacity>
       </View>
 
       {sortedCategories.length > 0 && (
@@ -510,23 +476,5 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: COLORS.textLight,
     marginTop: 2,
-  },
-  anniversaryButton: {
-    backgroundColor: COLORS.white,
-    borderRadius: 14,
-    padding: 14,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: COLORS.pink,
-    marginTop: 8,
-  },
-  anniversaryDone: {
-    backgroundColor: COLORS.pink + '15',
-    borderColor: COLORS.pink + '40',
-  },
-  anniversaryText: {
-    fontFamily: 'Nunito_600SemiBold',
-    fontSize: 14,
-    color: COLORS.pink,
   },
 });
