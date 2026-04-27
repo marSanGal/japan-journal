@@ -28,6 +28,13 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "57bb08f5-48ec-4d5c-a90a-b13def640e6b"
+      }
+    },
+    "owner": "msanchezgalvez"
   }
 }
