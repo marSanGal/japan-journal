@@ -26,9 +26,10 @@ interface Props {
   sheetRef: React.RefObject<BottomSheet | null>;
   editingEntry?: Entry | null;
   onEditDone?: () => void;
+  forDate?: string;
 }
 
-export default function AddEntrySheet({ sheetRef, editingEntry, onEditDone }: Props) {
+export default function AddEntrySheet({ sheetRef, editingEntry, onEditDone, forDate }: Props) {
   const config = useJournalStore((s) => s.config);
   const addEntry = useJournalStore((s) => s.addEntry);
   const updateEntry = useJournalStore((s) => s.updateEntry);
@@ -158,9 +159,16 @@ export default function AddEntrySheet({ sheetRef, editingEntry, onEditDone }: Pr
       return;
     }
 
-    const now = new Date();
-    const offset = parseInt(timeOffset, 10) || 0;
-    now.setMinutes(now.getMinutes() - offset);
+    let now: Date;
+    if (forDate) {
+      now = new Date(forDate + 'T12:00:00');
+      const offset = parseInt(timeOffset, 10) || 0;
+      now.setMinutes(now.getMinutes() - offset);
+    } else {
+      now = new Date();
+      const offset = parseInt(timeOffset, 10) || 0;
+      now.setMinutes(now.getMinutes() - offset);
+    }
 
     addEntry({
       id: uuid(),

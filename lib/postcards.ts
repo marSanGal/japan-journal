@@ -22,26 +22,7 @@ const pickBestPhoto = (entries: Entry[]): string | null => {
   return (shrine || food || moment || withPhotos[0]).photoUri!;
 };
 
-export const buildPostcardHtml = (
-  dayLog: DayLog,
-  chapterNumber: number,
-  dateLabel: string,
-  travelers: string[]
-): string => {
-  const quote = dayLog.narrative ? pickQuote(dayLog.narrative) : '';
-  const photo = pickBestPhoto(dayLog.entries);
-  const names = travelers.join(' & ');
-  const entryHighlights = dayLog.entries
-    .slice(0, 5)
-    .map((e) => `${CATEGORY_CONFIG[e.category].icon} ${e.text.slice(0, 50)}`)
-    .join(' · ');
-
-  return `<!DOCTYPE html>
-<html>
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<style>
+const POSTCARD_CSS = `
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
     font-family: 'Georgia', serif;
@@ -54,7 +35,6 @@ export const buildPostcardHtml = (
   }
   .photo-section {
     flex: 1;
-    background: ${photo ? `url('${photo}') center/cover` : '#F4A7BB'};
     position: relative;
   }
   .overlay {
@@ -110,9 +90,24 @@ export const buildPostcardHtml = (
     color: #C5A8D8;
     letter-spacing: 2px;
   }
-</style>
-</head>
-<body>
+`;
+
+function buildPostcardBody(
+  dayLog: DayLog,
+  chapterNumber: number,
+  dateLabel: string,
+  travelers: string[]
+): { bodyHtml: string; photoBg: string } {
+  const quote = dayLog.narrative ? pickQuote(dayLog.narrative) : '';
+  const photo = pickBestPhoto(dayLog.entries);
+  const names = travelers.join(' & ');
+  const entryHighlights = dayLog.entries
+    .slice(0, 5)
+    .map((e) => `${CATEGORY_CONFIG[e.category].icon} ${e.text.slice(0, 50)}`)
+    .join(' · ');
+
+  const photoBg = photo ? `url('${photo}') center/cover` : '#F4A7BB';
+  const bodyHtml = `
   <div class="photo-section">
     <div class="overlay">
       <div class="chapter">Chapter ${chapterNumber}</div>
@@ -124,7 +119,74 @@ export const buildPostcardHtml = (
     ${quote ? `<div class="quote">"${escapeHtml(quote)}"</div>` : ''}
     <div class="highlights">${escapeHtml(entryHighlights)}</div>
   </div>
-  <div class="brand">🌸 Japan Journal</div>
+  <div class="brand">🌸 Japan Journal</div>`;
+
+  return { bodyHtml, photoBg };
+}
+
+export const buildPostcardHtml = (
+  dayLog: DayLog,
+  chapterNumber: number,
+  dateLabel: string,
+  travelers: string[]
+): string => {
+  const { bodyHtml, photoBg } = buildPostcardBody(dayLog, chapterNumber, dateLabel, travelers);
+
+  return `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  ${POSTCARD_CSS}
+  .photo-section { background: ${photoBg}; }
+</style>
+</head>
+<body>
+  ${bodyHtml}
+</body>
+</html>`;
+};
+
+export const buildPostcardPreviewHtml = (
+  dayLog: DayLog,
+  chapterNumber: number,
+  dateLabel: string,
+  travelers: string[],
+  previewWidth: number
+): string => {
+  const { bodyHtml, photoBg } = buildPostcardBody(dayLog, chapterNumber, dateLabel, travelers);
+  const scale = previewWidth / 1080;
+  const previewHeight = Math.round(1920 * scale);
+
+  return `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=${previewWidth}, initial-scale=1, user-scalable=no">
+<style>
+  html, body {
+    margin: 0; padding: 0;
+    width: ${previewWidth}px;
+    height: ${previewHeight}px;
+    overflow: hidden;
+    background: #FFF0F5;
+  }
+  .scale-wrapper {
+    width: 1080px;
+    height: 1920px;
+    transform: scale(${scale.toFixed(4)});
+    transform-origin: top left;
+  }
+  .scale-wrapper body { display: flex; flex-direction: column; }
+  ${POSTCARD_CSS}
+  .photo-section { background: ${photoBg}; }
+</style>
+</head>
+<body>
+  <div class="scale-wrapper">
+    ${bodyHtml}
+  </div>
 </body>
 </html>`;
 };

@@ -38,6 +38,16 @@ export default function RootLayout() {
         <Stack.Screen name="setup" options={{ gestureEnabled: false }} />
         <Stack.Screen name="(tabs)" options={{ gestureEnabled: false }} />
         <Stack.Screen
+          name="day/[date]"
+          options={{
+            headerShown: true,
+            headerTitle: 'Edit Day',
+            headerStyle: { backgroundColor: COLORS.background },
+            headerTintColor: COLORS.text,
+            presentation: 'card',
+          }}
+        />
+        <Stack.Screen
           name="chapter/[date]"
           options={{
             headerShown: true,

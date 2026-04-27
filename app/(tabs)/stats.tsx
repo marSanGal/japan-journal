@@ -1,5 +1,6 @@
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
+import { format } from 'date-fns';
 import { useJournalStore } from '../../lib/store';
 import { COLORS, CATEGORY_CONFIG, getTravelerColor } from '../../lib/constants';
 import { formatYenWithUsd } from '../../lib/currency';
@@ -50,6 +51,23 @@ export default function StatsScreen() {
   const chaptersWritten = Object.values(days).filter((d) => d.narrative).length;
   const daysLogged = Object.values(days).filter((d) => d.entries.length > 0).length;
 
+  const loggedDays = Object.entries(days)
+    .filter(([, d]) => d.entries.length > 0)
+    .map(([dateStr, d]) => {
+      const start = new Date(config.startDate);
+      const current = new Date(dateStr);
+      const dayNum = Math.floor(
+        (current.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)
+      ) + 1;
+      return {
+        date: dateStr,
+        dayNum,
+        entryCount: d.entries.length,
+        hasNarrative: !!d.narrative,
+      };
+    })
+    .sort((a, b) => a.date.localeCompare(b.date));
+
   const categoryCounts: Record<string, number> = {};
   for (const entry of allEntries) {
     categoryCounts[entry.category] = (categoryCounts[entry.category] || 0) + 1;
@@ -84,6 +102,34 @@ export default function StatsScreen() {
           wide
         />
       </View>
+
+      {loggedDays.length > 0 && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Previous Days</Text>
+          {loggedDays.map((day) => (
+            <TouchableOpacity
+              key={day.date}
+              style={styles.dayRow}
+              onPress={() => router.push(`/day/${day.date}`)}
+              activeOpacity={0.7}
+            >
+              <View style={styles.dayLeft}>
+                <Text style={styles.dayNum}>Day {day.dayNum}</Text>
+                <Text style={styles.dayDate}>
+                  {format(new Date(day.date + 'T12:00:00'), 'EEE, MMM d')}
+                </Text>
+              </View>
+              <View style={styles.dayRight}>
+                <View style={styles.dayCountBadge}>
+                  <Text style={styles.dayCountText}>{day.entryCount}</Text>
+                </View>
+                {day.hasNarrative && <Text style={styles.dayChapterIcon}>📖</Text>}
+                <Text style={styles.dayArrow}>›</Text>
+              </View>
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
 
       {allNames.length > 1 && (
         <View style={styles.section}>
@@ -157,21 +203,14 @@ export default function StatsScreen() {
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.extrasButton}
-            onPress={() => router.push('/extras/flashcards')}
-          >
-            <Text style={styles.extrasIcon}>🧠</Text>
-            <Text style={styles.extrasLabel}>Flashcards</Text>
-          </TouchableOpacity>
-        </View>
-        <View style={styles.extrasRow}>
-          <TouchableOpacity
-            style={styles.extrasButton}
             onPress={() => router.push('/extras/persona')}
           >
             <Text style={styles.extrasIcon}>🎭</Text>
             <Text style={styles.extrasLabel}>Narrator</Text>
             <Text style={styles.extrasCount}>{persona === 'ghibli' ? 'Ghibli' : '✓'}</Text>
           </TouchableOpacity>
+        </View>
+        <View style={styles.extrasRow}>
           <TouchableOpacity
             style={styles.extrasButton}
             onPress={() => router.push('/extras/past-trips')}
@@ -363,6 +402,57 @@ const styles = StyleSheet.create({
     color: COLORS.textLight,
     width: 28,
     textAlign: 'right',
+  },
+  dayRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: COLORS.white,
+    borderRadius: 14,
+    padding: 14,
+    marginBottom: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+    elevation: 1,
+  },
+  dayLeft: {
+    gap: 2,
+  },
+  dayNum: {
+    fontFamily: 'Nunito_700Bold',
+    fontSize: 15,
+    color: COLORS.text,
+  },
+  dayDate: {
+    fontFamily: 'Nunito_400Regular',
+    fontSize: 13,
+    color: COLORS.textLight,
+  },
+  dayRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  dayCountBadge: {
+    backgroundColor: COLORS.pink + '30',
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderRadius: 10,
+  },
+  dayCountText: {
+    fontFamily: 'Nunito_600SemiBold',
+    fontSize: 12,
+    color: COLORS.pink,
+  },
+  dayChapterIcon: {
+    fontSize: 16,
+  },
+  dayArrow: {
+    fontFamily: 'Nunito_700Bold',
+    fontSize: 22,
+    color: COLORS.textLight,
   },
   extrasSection: {
     paddingHorizontal: 16,
