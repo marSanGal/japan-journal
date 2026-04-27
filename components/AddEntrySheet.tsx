@@ -126,6 +126,10 @@ export default function AddEntrySheet({ sheetRef, editingEntry, onEditDone, forD
         setFromStation(editingEntry.trainInfo.fromStation);
         setToStation(editingEntry.trainInfo.toStation);
         setTrainType(editingEntry.trainInfo.type);
+      } else {
+        setFromStation('');
+        setToStation('');
+        setTrainType('metro');
       }
       setHadLiveMusic(editingEntry.hadLiveMusic || false);
       setBarGenre(editingEntry.barGenre || 'metal');
@@ -310,8 +314,8 @@ export default function AddEntrySheet({ sheetRef, editingEntry, onEditDone, forD
       category,
       text: finalText,
       location: location.trim() || undefined,
-      amountYen: amountYen ? parseInt(amountYen, 10) : undefined,
-      stepsCount: stepsCount ? parseInt(stepsCount, 10) : undefined,
+      amountYen: amountYen ? (Number.isNaN(parseInt(amountYen, 10)) ? undefined : parseInt(amountYen, 10)) : undefined,
+      stepsCount: stepsCount ? (Number.isNaN(parseInt(stepsCount, 10)) ? undefined : parseInt(stepsCount, 10)) : undefined,
       participants,
       photoUri,
       audioUri,

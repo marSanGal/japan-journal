@@ -291,6 +291,7 @@ export const useJournalStore = create<JournalState>()(
             manholeCovers: [],
             ekiStamps: [],
             customCategories: [],
+            lastBackupTimestamp: null,
           };
         }),
 
@@ -319,6 +320,14 @@ export const useJournalStore = create<JournalState>()(
         if (!data || typeof data !== 'object' || !data.version) {
           throw new Error('Invalid backup file');
         }
+        if (data.days && typeof data.days === 'object') {
+          for (const [key, day] of Object.entries(data.days)) {
+            const d = day as Record<string, unknown>;
+            if (!Array.isArray(d.entries)) {
+              (data.days as Record<string, unknown>)[key] = { ...d, date: key, entries: [] };
+            }
+          }
+        }
         set({
           config: data.config ?? null,
           days: data.days ?? {},
@@ -343,8 +352,8 @@ export const useJournalStore = create<JournalState>()(
       getChapterNumber: (date) => {
         const state = get();
         if (!state.config) return 1;
-        const start = new Date(state.config.startDate);
-        const current = new Date(date);
+        const start = new Date(state.config.startDate + 'T12:00:00');
+        const current = new Date(date + 'T12:00:00');
         const diff = Math.floor(
           (current.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)
         );

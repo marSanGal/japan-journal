@@ -74,7 +74,7 @@ export default function EntryCard({ entry, onLongPress, onPress }: Props) {
               <View key={i} style={styles.dishRow}>
                 <Text style={styles.dishName}>
                   🍽️ {dish.name}
-                  {dish.rating ? ' ' + '★'.repeat(dish.rating) + '☆'.repeat(5 - dish.rating) : ''}
+                  {dish.rating != null ? ' ' + '★'.repeat(dish.rating) + '☆'.repeat(5 - dish.rating) : ''}
                 </Text>
                 {dish.comment ? <Text style={styles.dishComment}>{dish.comment}</Text> : null}
               </View>

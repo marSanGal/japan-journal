@@ -29,11 +29,26 @@ function scheduleBackup() {
 export function initAutoBackup() {
   let prevDays = useJournalStore.getState().days;
   let prevEpilogue = useJournalStore.getState().epilogue;
+  let prevConfig = useJournalStore.getState().config;
+  let prevCustomCategories = useJournalStore.getState().customCategories;
+  let prevGoshuinStamps = useJournalStore.getState().goshuinStamps;
+  let prevEkiStamps = useJournalStore.getState().ekiStamps;
 
   return useJournalStore.subscribe((state) => {
-    if (state.days !== prevDays || state.epilogue !== prevEpilogue) {
+    if (
+      state.days !== prevDays ||
+      state.epilogue !== prevEpilogue ||
+      state.config !== prevConfig ||
+      state.customCategories !== prevCustomCategories ||
+      state.goshuinStamps !== prevGoshuinStamps ||
+      state.ekiStamps !== prevEkiStamps
+    ) {
       prevDays = state.days;
       prevEpilogue = state.epilogue;
+      prevConfig = state.config;
+      prevCustomCategories = state.customCategories;
+      prevGoshuinStamps = state.goshuinStamps;
+      prevEkiStamps = state.ekiStamps;
       scheduleBackup();
     }
   });

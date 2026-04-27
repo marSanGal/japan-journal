@@ -1,7 +1,7 @@
 import OpenAI from 'openai';
 import Constants from 'expo-constants';
-import { Entry } from './types';
-import { CATEGORY_CONFIG } from './constants';
+import { Entry, CustomCategory } from './types';
+import { CATEGORY_CONFIG, getCategoryDisplay } from './constants';
 import { getPersona } from './personas';
 
 const getClient = () => {
@@ -12,7 +12,7 @@ const getClient = () => {
   return new OpenAI({ apiKey, dangerouslyAllowBrowser: true });
 };
 
-const formatEntries = (entries: Entry[]): string => {
+const formatEntries = (entries: Entry[], customCategories?: CustomCategory[]): string => {
   return entries
     .map((e) => {
       const time = new Date(e.timestamp).toLocaleTimeString('en-US', {
@@ -20,7 +20,7 @@ const formatEntries = (entries: Entry[]): string => {
         minute: '2-digit',
         hour12: true,
       });
-      const cat = CATEGORY_CONFIG[e.category].label;
+      const cat = getCategoryDisplay(e.category, e.customCategoryId, customCategories).label;
       let withTag: string;
       if (e.participants && e.participants.length > 1) {
         withTag = ` [with: ${e.participants.join(', ')}]`;
@@ -35,7 +35,7 @@ const formatEntries = (entries: Entry[]): string => {
       if (e.dishes && e.dishes.length > 0) {
         const dishLines = e.dishes.map((d) => {
           let s = `  - Dish: ${d.name}`;
-          if (d.rating) s += ` (${'★'.repeat(d.rating)}${'☆'.repeat(5 - d.rating)})`;
+          if (d.rating != null) s += ` (${'★'.repeat(d.rating)}${'☆'.repeat(5 - d.rating)})`;
           if (d.comment) s += ` — "${d.comment}"`;
           return s;
         });
@@ -165,13 +165,14 @@ export const generateChapter = async (
   travelers: string[],
   chapterNumber: number,
   weather?: string,
-  personaId = 'ghibli'
+  personaId = 'ghibli',
+  customCategories?: CustomCategory[]
 ): Promise<string> => {
   const client = getClient();
   const sorted = [...entries].sort(
     (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
   );
-  const entriesText = formatEntries(sorted);
+  const entriesText = formatEntries(sorted, customCategories);
   const weatherNote = weather ? `\nToday's weather: ${weather}` : '';
   const systemPrompt = buildPrompt(travelers, chapterNumber, sorted.length, personaId);
   const maxTokens = Math.min(600 + sorted.length * 150, 2500);

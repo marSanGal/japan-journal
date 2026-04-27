@@ -30,6 +30,7 @@ export default function BookScreen() {
   const days = useJournalStore((s) => s.days);
   const epilogue = useJournalStore((s) => s.epilogue);
   const setEpilogue = useJournalStore((s) => s.setEpilogue);
+  const customCategories = useJournalStore((s) => s.customCategories);
   const [loading, setLoading] = useState(false);
   const [exporting, setExporting] = useState(false);
 
@@ -89,7 +90,7 @@ export default function BookScreen() {
   const handleExport = async () => {
     setExporting(true);
     try {
-      await exportPdf(config, days, epilogue);
+      await exportPdf(config, days, epilogue, customCategories);
     } catch (err: any) {
       Alert.alert('Export failed', err?.message || 'Could not generate PDF.');
     } finally {

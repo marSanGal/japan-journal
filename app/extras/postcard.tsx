@@ -19,6 +19,7 @@ import { buildPostcardHtml, buildPostcardPreviewHtml } from '../../lib/postcards
 export default function PostcardScreen() {
   const config = useJournalStore((s) => s.config);
   const days = useJournalStore((s) => s.days);
+  const customCategories = useJournalStore((s) => s.customCategories);
   const [generating, setGenerating] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const { width: screenWidth } = useWindowDimensions();
@@ -44,7 +45,7 @@ export default function PostcardScreen() {
         ) + 1;
       const dateLabel = format(new Date(dateStr + 'T12:00:00'), 'MMMM d, yyyy');
 
-      const html = buildPostcardHtml(dayLog, chapterNum, dateLabel, travelers);
+      const html = buildPostcardHtml(dayLog, chapterNum, dateLabel, travelers, customCategories);
       const { uri } = await Print.printToFileAsync({ html, width: 1080, height: 1920 });
       await Sharing.shareAsync(uri, { mimeType: 'application/pdf', UTI: 'com.adobe.pdf' });
     } catch (err: any) {
@@ -62,7 +63,7 @@ export default function PostcardScreen() {
         (new Date(dateStr).getTime() - start) / (1000 * 60 * 60 * 24)
       ) + 1;
     const dateLabel = format(new Date(dateStr + 'T12:00:00'), 'MMMM d, yyyy');
-    return buildPostcardPreviewHtml(dayLog, chapterNum, dateLabel, travelers, previewWidth);
+    return buildPostcardPreviewHtml(dayLog, chapterNum, dateLabel, travelers, previewWidth, customCategories);
   };
 
   return (

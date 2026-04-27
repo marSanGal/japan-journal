@@ -1,17 +1,20 @@
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import { documentDirectory, moveAsync } from 'expo-file-system/legacy';
-import { DayLog, TripConfig, Entry } from './types';
-import { CATEGORY_CONFIG, getTripDays } from './constants';
+import { DayLog, TripConfig, Entry, CustomCategory } from './types';
+import { CATEGORY_CONFIG, getTripDays, getCategoryDisplay } from './constants';
 import { format, addDays } from 'date-fns';
 
-const entryToHtml = (entry: Entry): string => {
-  const cat = CATEGORY_CONFIG[entry.category];
+const entryToHtml = (entry: Entry, customCategories?: CustomCategory[]): string => {
+  const cat = getCategoryDisplay(entry.category, entry.customCategoryId, customCategories);
   const time = format(new Date(entry.timestamp), 'h:mm a');
   const location = entry.location ? `<span class="location">📍 ${entry.location}</span>` : '';
   const amount = entry.amountYen ? `<span class="amount">¥${entry.amountYen.toLocaleString()}</span>` : '';
-  const photo = entry.photoUri
-    ? `<img src="${entry.photoUri}" class="entry-photo" />`
+  const escapedUri = entry.photoUri
+    ? entry.photoUri.replace(/&/g, '&amp;').replace(/"/g, '&quot;')
+    : '';
+  const photo = escapedUri
+    ? `<img src="${escapedUri}" class="entry-photo" />`
     : '';
   const together = entry.together ? '<span class="badge">together</span>' : '';
 
@@ -31,7 +34,8 @@ const entryToHtml = (entry: Entry): string => {
 export const generateScrapbookHtml = (
   config: TripConfig,
   days: Record<string, DayLog>,
-  epilogue: string | null
+  epilogue: string | null,
+  customCategories?: CustomCategory[]
 ): string => {
   const allNames = [config.myName, ...config.partners];
   const title = config.partners.length > 0
@@ -55,7 +59,7 @@ export const generateScrapbookHtml = (
       ? `<div class="narrative">${day.narrative.split('\n').filter(l => l.trim()).map(l => `<p>${l}</p>`).join('')}</div>`
       : '';
 
-    const entriesHtml = day.entries.map(entryToHtml).join('');
+    const entriesHtml = day.entries.map((e) => entryToHtml(e, customCategories)).join('');
 
     chaptersHtml += `
       <div class="chapter">
@@ -189,9 +193,10 @@ export const generateScrapbookHtml = (
 export const exportPdf = async (
   config: TripConfig,
   days: Record<string, DayLog>,
-  epilogue: string | null
+  epilogue: string | null,
+  customCategories?: CustomCategory[]
 ) => {
-  const html = generateScrapbookHtml(config, days, epilogue);
+  const html = generateScrapbookHtml(config, days, epilogue, customCategories);
   const { uri } = await Print.printToFileAsync({ html });
 
   const newUri = `${documentDirectory}japan-journal.pdf`;

@@ -26,6 +26,7 @@ export default function ChapterScreen() {
   const setNarrative = useJournalStore((s) => s.setNarrative);
   const chapterNum = useJournalStore((s) => s.getChapterNumber(date!));
 
+  const customCategories = useJournalStore((s) => s.customCategories);
   const persona = useJournalStore((s) => s.narratorPersona);
   const [loading, setLoading] = useState(false);
 
@@ -51,7 +52,8 @@ export default function ChapterScreen() {
         allTravelers,
         chapterNum,
         dayLog?.weather,
-        persona
+        persona,
+        customCategories
       );
       setNarrative(date, chapter);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);

@@ -1,5 +1,5 @@
-import { Entry, DayLog } from './types';
-import { CATEGORY_CONFIG } from './constants';
+import { Entry, DayLog, CustomCategory } from './types';
+import { CATEGORY_CONFIG, getCategoryDisplay } from './constants';
 
 const escapeHtml = (s: string): string =>
   s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -96,17 +96,19 @@ function buildPostcardBody(
   dayLog: DayLog,
   chapterNumber: number,
   dateLabel: string,
-  travelers: string[]
+  travelers: string[],
+  customCategories?: CustomCategory[]
 ): { bodyHtml: string; photoBg: string } {
   const quote = dayLog.narrative ? pickQuote(dayLog.narrative) : '';
   const photo = pickBestPhoto(dayLog.entries);
   const names = travelers.join(' & ');
   const entryHighlights = dayLog.entries
     .slice(0, 5)
-    .map((e) => `${CATEGORY_CONFIG[e.category].icon} ${e.text.slice(0, 50)}`)
+    .map((e) => `${getCategoryDisplay(e.category, e.customCategoryId, customCategories).icon} ${e.text.slice(0, 50)}`)
     .join(' · ');
 
-  const photoBg = photo ? `url('${photo}') center/cover` : '#2C4A5A';
+  const safePhoto = photo ? photo.replace(/'/g, "\\'").replace(/\)/g, '\\)') : '';
+  const photoBg = safePhoto ? `url('${safePhoto}') center/cover` : '#2C4A5A';
   const bodyHtml = `
   <div class="photo-section">
     <div class="overlay">
@@ -128,9 +130,10 @@ export const buildPostcardHtml = (
   dayLog: DayLog,
   chapterNumber: number,
   dateLabel: string,
-  travelers: string[]
+  travelers: string[],
+  customCategories?: CustomCategory[]
 ): string => {
-  const { bodyHtml, photoBg } = buildPostcardBody(dayLog, chapterNumber, dateLabel, travelers);
+  const { bodyHtml, photoBg } = buildPostcardBody(dayLog, chapterNumber, dateLabel, travelers, customCategories);
 
   return `<!DOCTYPE html>
 <html>
@@ -153,9 +156,10 @@ export const buildPostcardPreviewHtml = (
   chapterNumber: number,
   dateLabel: string,
   travelers: string[],
-  previewWidth: number
+  previewWidth: number,
+  customCategories?: CustomCategory[]
 ): string => {
-  const { bodyHtml, photoBg } = buildPostcardBody(dayLog, chapterNumber, dateLabel, travelers);
+  const { bodyHtml, photoBg } = buildPostcardBody(dayLog, chapterNumber, dateLabel, travelers, customCategories);
   const scale = previewWidth / 1080;
   const previewHeight = Math.round(1920 * scale);
 
