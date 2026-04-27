@@ -2,51 +2,51 @@ import { differenceInDays, parseISO } from 'date-fns';
 import { EntryCategory, CustomCategory, TripConfig } from './types';
 
 export const COLORS = {
-  background: '#FFF0F5',
-  backgroundAlt: '#FFF8F0',
-  pink: '#F4A7BB',
-  green: '#A8D8A8',
-  blue: '#A8D4E6',
-  orange: '#F4C28C',
-  purple: '#C5A8D8',
-  yellow: '#F4E08C',
-  red: '#E89090',
-  cream: '#FFF8F0',
-  text: '#4A3728',
-  textLight: '#8B7B6B',
+  background: '#F5F0E8',
+  backgroundAlt: '#EBE4D8',
+  primary: '#2C4A5A',
+  green: '#8B9E5E',
+  blue: '#4A7A8C',
+  orange: '#C4956A',
+  purple: '#7A6B8A',
+  yellow: '#C4A84A',
+  red: '#C53D43',
+  cream: '#EBE4D8',
+  text: '#2B2B2B',
+  textLight: '#7A756A',
   white: '#FFFFFF',
-  border: '#F0E0D6',
+  border: '#D4C9B8',
 };
 
 export const TRAVELER_COLORS = [
-  '#F4A7BB',
-  '#A8D4E6',
-  '#A8D8A8',
-  '#C5A8D8',
-  '#F4C28C',
-  '#E89090',
-  '#B8C8A8',
-  '#D4A8D8',
+  '#2C4A5A',
+  '#8B9E5E',
+  '#C53D43',
+  '#7A6B8A',
+  '#C4956A',
+  '#4A7A8C',
+  '#A8926A',
+  '#5A7A5A',
 ];
 
 export const CATEGORY_CONFIG: Record<
   EntryCategory,
   { label: string; icon: string; color: string }
 > = {
-  shrine: { label: 'Shrine', icon: '⛩️', color: '#E89090' },
-  food: { label: 'Food', icon: '🍙', color: '#F4C28C' },
-  sound: { label: 'Sound', icon: '🎵', color: '#A8D4E6' },
-  engrish: { label: 'Engrish', icon: '💬', color: '#C5A8D8' },
-  purchase: { label: 'Purchase', icon: '🛍️', color: '#F4E08C' },
-  moment: { label: 'Moment', icon: '✨', color: '#F4A7BB' },
-  overheard: { label: 'Overheard', icon: '👂', color: '#D4A8D8' },
-  walk: { label: 'Walk', icon: '👣', color: '#B8C8A8' },
-  surprise: { label: 'Surprise', icon: '😲', color: '#F4B88C' },
-  train: { label: 'Train', icon: '🚆', color: '#A8B8D8' },
-  bar: { label: 'Bar', icon: '🎸', color: '#8B6F8E' },
-  gachapon: { label: 'Gachapon', icon: '🎰', color: '#E8A0B8' },
-  vending: { label: 'Vending', icon: '🥤', color: '#7EBFA8' },
-  custom: { label: 'Custom', icon: '📌', color: '#B8C8A8' },
+  shrine: { label: 'Shrine', icon: '⛩️', color: '#C53D43' },
+  food: { label: 'Food', icon: '🍙', color: '#C4956A' },
+  sound: { label: 'Sound', icon: '🎵', color: '#4A7A8C' },
+  engrish: { label: 'Engrish', icon: '💬', color: '#7A6B8A' },
+  purchase: { label: 'Purchase', icon: '🛍️', color: '#C4A84A' },
+  moment: { label: 'Moment', icon: '✨', color: '#2C4A5A' },
+  overheard: { label: 'Overheard', icon: '👂', color: '#8A7A9A' },
+  walk: { label: 'Walk', icon: '👣', color: '#8B9E5E' },
+  surprise: { label: 'Surprise', icon: '😲', color: '#B87A4A' },
+  train: { label: 'Train', icon: '🚆', color: '#5A7A8A' },
+  bar: { label: 'Bar', icon: '🎸', color: '#6A4A5A' },
+  gachapon: { label: 'Gachapon', icon: '🎰', color: '#9A6A7A' },
+  vending: { label: 'Vending', icon: '🥤', color: '#5A8A7A' },
+  custom: { label: 'Custom', icon: '📌', color: '#8B9E5E' },
 };
 
 export const WEATHER_OPTIONS = [
@@ -77,8 +77,8 @@ export const toISODate = (display: string): string => {
 };
 
 export const CUSTOM_COLOR_OPTIONS = [
-  '#F4A7BB', '#A8D4E6', '#A8D8A8', '#C5A8D8',
-  '#F4C28C', '#E89090', '#B8C8A8', '#7EBFA8',
+  '#2C4A5A', '#8B9E5E', '#C53D43', '#7A6B8A',
+  '#C4956A', '#4A7A8C', '#C4A84A', '#5A8A7A',
 ];
 
 export function getCategoryDisplay(

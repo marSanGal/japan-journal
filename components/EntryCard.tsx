@@ -242,10 +242,10 @@ const styles = StyleSheet.create({
   trainRoute: {
     fontFamily: 'Nunito_600SemiBold',
     fontSize: 13,
-    color: '#A8B8D8',
+    color: COLORS.blue,
   },
   trainTypeBadge: {
-    backgroundColor: '#A8B8D8' + '30',
+    backgroundColor: COLORS.blue + '30',
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 8,
@@ -253,7 +253,7 @@ const styles = StyleSheet.create({
   trainTypeLabel: {
     fontFamily: 'Nunito_600SemiBold',
     fontSize: 11,
-    color: '#A8B8D8',
+    color: COLORS.blue,
     textTransform: 'capitalize',
   },
   dishList: {
@@ -277,7 +277,7 @@ const styles = StyleSheet.create({
   stepsText: {
     fontFamily: 'Nunito_600SemiBold',
     fontSize: 13,
-    color: '#B8C8A8',
+    color: COLORS.green,
     marginTop: 2,
   },
   barInfoRow: {
@@ -287,7 +287,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   barGenreBadge: {
-    backgroundColor: '#8B6F8E' + '30',
+    backgroundColor: COLORS.purple + '30',
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 8,
@@ -295,13 +295,13 @@ const styles = StyleSheet.create({
   barGenreLabel: {
     fontFamily: 'Nunito_600SemiBold',
     fontSize: 11,
-    color: '#8B6F8E',
+    color: COLORS.purple,
     textTransform: 'capitalize',
   },
   liveMusicTag: {
     fontFamily: 'Nunito_600SemiBold',
     fontSize: 12,
-    color: '#8B6F8E',
+    color: COLORS.purple,
   },
   songList: {
     marginTop: 4,
@@ -310,7 +310,7 @@ const styles = StyleSheet.create({
   songRow: {
     fontFamily: 'Nunito_600SemiBold',
     fontSize: 12,
-    color: '#8B6F8E',
+    color: COLORS.purple,
   },
   goshuinBadge: {
     fontFamily: 'Nunito_600SemiBold',

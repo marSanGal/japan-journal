@@ -17,6 +17,7 @@ import * as DocumentPicker from 'expo-document-picker';
 import { useJournalStore } from '../../lib/store';
 import { COLORS, TRAVELER_COLORS, toDisplayDate, toISODate } from '../../lib/constants';
 import { getPersona } from '../../lib/personas';
+import SeigaihaBackground from '../../components/SeigaihaBackground';
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -161,6 +162,8 @@ export default function SettingsScreen() {
   const personaInfo = getPersona(persona);
 
   return (
+    <View style={{ flex: 1, backgroundColor: COLORS.background }}>
+    <SeigaihaBackground />
     <ScrollView style={styles.container} contentContainerStyle={styles.scroll}>
       <Text style={styles.title}>Settings</Text>
 
@@ -249,7 +252,7 @@ export default function SettingsScreen() {
           <Switch
             value={showGbp}
             onValueChange={setShowGbp}
-            trackColor={{ false: COLORS.border, true: COLORS.pink }}
+            trackColor={{ false: COLORS.border, true: COLORS.primary }}
             thumbColor={COLORS.white}
           />
         </View>
@@ -325,6 +328,7 @@ export default function SettingsScreen() {
 
       <View style={styles.bottomPad} />
     </ScrollView>
+    </View>
   );
 }
 
@@ -418,7 +422,7 @@ const styles = StyleSheet.create({
   addBtnText: {
     fontFamily: 'Nunito_600SemiBold',
     fontSize: 14,
-    color: COLORS.pink,
+    color: COLORS.primary,
   },
   navRow: {
     flexDirection: 'row',

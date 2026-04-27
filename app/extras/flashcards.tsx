@@ -173,7 +173,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.border,
   },
-  tabActive: { backgroundColor: COLORS.pink, borderColor: COLORS.pink },
+  tabActive: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
   tabText: { fontFamily: 'Nunito_600SemiBold', fontSize: 14, color: COLORS.text },
   tabTextActive: { color: COLORS.white },
   cardContainer: { gap: 16 },

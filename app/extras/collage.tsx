@@ -82,10 +82,10 @@ export default function CollageScreen() {
 
       const html = `
         <html>
-        <body style="margin:0;padding:24px;background:#FFF0F5;font-family:sans-serif;">
-          <h2 style="text-align:center;color:#4A3728;margin-bottom:16px;">${dayLabel}</h2>
+        <body style="margin:0;padding:24px;background:#F5F0E8;font-family:sans-serif;">
+          <h2 style="text-align:center;color:#2B2B2B;margin-bottom:16px;">${dayLabel}</h2>
           ${imageRows.join('')}
-          <p style="text-align:center;color:#8B7B6B;font-size:12px;margin-top:16px;">
+          <p style="text-align:center;color:#7A756A;font-size:12px;margin-top:16px;">
             ${config?.myName}'s Japan Journal
           </p>
         </body>
@@ -196,8 +196,8 @@ const styles = StyleSheet.create({
     borderColor: COLORS.border,
   },
   dayChipSelected: {
-    backgroundColor: COLORS.pink,
-    borderColor: COLORS.pink,
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
   },
   dayChipText: {
     fontFamily: 'Nunito_700Bold',
@@ -222,7 +222,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   shareButton: {
-    backgroundColor: COLORS.pink,
+    backgroundColor: COLORS.primary,
     borderRadius: 14,
     padding: 16,
     alignItems: 'center',

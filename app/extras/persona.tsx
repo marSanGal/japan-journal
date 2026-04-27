@@ -66,7 +66,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: 'transparent',
   },
-  cardActive: { borderColor: COLORS.pink },
+  cardActive: { borderColor: COLORS.primary },
   cardHeader: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 8 },
   cardIcon: { fontSize: 36 },
   cardName: { fontFamily: 'Nunito_700Bold', fontSize: 18, color: COLORS.text },

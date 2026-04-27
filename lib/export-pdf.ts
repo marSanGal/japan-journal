@@ -81,8 +81,8 @@ export const generateScrapbookHtml = (
     @page { margin: 20mm; }
     body {
       font-family: Georgia, 'Times New Roman', serif;
-      color: #4A3728;
-      background: #FFFEF5;
+      color: #2B2B2B;
+      background: #F5F0E8;
       line-height: 1.6;
       max-width: 700px;
       margin: 0 auto;
@@ -96,11 +96,11 @@ export const generateScrapbookHtml = (
     .cover h1 {
       font-size: 36px;
       margin-bottom: 8px;
-      color: #4A3728;
+      color: #2B2B2B;
     }
     .cover .subtitle {
       font-size: 18px;
-      color: #8B7B6B;
+      color: #7A756A;
     }
     .cover .flower { font-size: 48px; margin-bottom: 20px; }
     .chapter {
@@ -109,16 +109,16 @@ export const generateScrapbookHtml = (
     .chapter h2 {
       font-size: 24px;
       margin-bottom: 4px;
-      color: #4A3728;
+      color: #2B2B2B;
     }
     .chapter-date {
       font-size: 14px;
-      color: #8B7B6B;
+      color: #7A756A;
       margin-bottom: 20px;
     }
     .narrative {
-      background: #FFFEF5;
-      border-left: 3px solid #F4A7BB;
+      background: #EBE4D8;
+      border-left: 3px solid #2C4A5A;
       padding: 16px 20px;
       margin-bottom: 24px;
       border-radius: 4px;
@@ -130,21 +130,21 @@ export const generateScrapbookHtml = (
     .entries { margin-top: 16px; }
     .entry {
       background: #fff;
-      border: 1px solid #F0E0D6;
+      border: 1px solid #D4C9B8;
       border-radius: 8px;
       padding: 12px;
       margin-bottom: 8px;
     }
     .entry-header {
       font-size: 13px;
-      color: #8B7B6B;
+      color: #7A756A;
       margin-bottom: 4px;
     }
     .cat-icon { margin-right: 4px; }
     .time { margin-right: 8px; }
     .author { font-weight: bold; margin-right: 8px; }
     .badge {
-      background: #A8D8A8;
+      background: #8B9E5E;
       color: #fff;
       padding: 1px 6px;
       border-radius: 8px;
@@ -156,7 +156,7 @@ export const generateScrapbookHtml = (
     }
     .location, .amount {
       font-size: 12px;
-      color: #8B7B6B;
+      color: #7A756A;
       display: block;
     }
     .entry-photo {
@@ -168,7 +168,7 @@ export const generateScrapbookHtml = (
     }
     .page-break { page-break-after: always; }
     .epilogue {
-      border-top: 2px solid #F4A7BB;
+      border-top: 2px solid #2C4A5A;
       padding-top: 20px;
     }
     .weather { margin-left: 8px; }
@@ -176,7 +176,7 @@ export const generateScrapbookHtml = (
 </head>
 <body>
   <div class="cover">
-    <div class="flower">🌸</div>
+    <div class="flower">🖌️</div>
     <h1>${title}</h1>
     <p class="subtitle">A Travel Journal</p>
   </div>

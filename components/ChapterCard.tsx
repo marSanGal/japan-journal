@@ -22,7 +22,7 @@ export default function ChapterCard({ narrative }: Props) {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#FFFEF5',
+    backgroundColor: COLORS.white,
     borderRadius: 16,
     margin: 16,
     padding: 24,
@@ -33,7 +33,7 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 3,
     borderWidth: 1,
-    borderColor: '#F0E8D8',
+    borderColor: COLORS.border,
   },
   tape: {
     position: 'absolute',
@@ -41,7 +41,7 @@ const styles = StyleSheet.create({
     left: '35%',
     width: '30%',
     height: 12,
-    backgroundColor: COLORS.pink + '40',
+    backgroundColor: COLORS.primary + '40',
     borderRadius: 2,
   },
   title: {
@@ -53,7 +53,7 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1,
-    backgroundColor: '#E8DCD0',
+    backgroundColor: COLORS.border,
     marginBottom: 16,
   },
   body: {

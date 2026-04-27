@@ -11,12 +11,12 @@
     "splash": {
       "image": "./assets/images/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#FFF0F5"
+      "backgroundColor": "#F5F0E8"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#FFF0F5"
+        "backgroundColor": "#F5F0E8"
       },
       "edgeToEdgeEnabled": true,
       "package": "com.japanjournal.app",
@@ -24,7 +24,8 @@
     },
     "plugins": [
       "expo-router",
-      "expo-dev-client"
+      "expo-dev-client",
+      "react-native-apple-shazamkit"
     ],
     "experiments": {
       "typedRoutes": true

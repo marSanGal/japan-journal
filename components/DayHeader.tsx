@@ -2,6 +2,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { format } from 'date-fns';
 import { COLORS, WEATHER_OPTIONS } from '../lib/constants';
 import { useJournalStore } from '../lib/store';
+import InkDivider from './InkDivider';
 
 interface Props {
   date: string;
@@ -38,6 +39,7 @@ export default function DayHeader({ date, onWeatherPress }: Props) {
           <Text style={styles.steps}>👣 {day.steps.toLocaleString()} steps</Text>
         ) : null}
       </TouchableOpacity>
+      <InkDivider />
     </View>
   );
 }
@@ -49,7 +51,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   chapterBadge: {
-    backgroundColor: COLORS.pink,
+    backgroundColor: COLORS.primary,
     paddingHorizontal: 16,
     paddingVertical: 6,
     borderRadius: 20,

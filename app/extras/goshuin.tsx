@@ -297,7 +297,7 @@ const styles = StyleSheet.create({
   },
   saveButton: {
     flex: 1,
-    backgroundColor: COLORS.pink,
+    backgroundColor: COLORS.primary,
     borderRadius: 14,
     padding: 14,
     alignItems: 'center',
@@ -322,6 +322,6 @@ const styles = StyleSheet.create({
   addText: {
     fontFamily: 'Nunito_600SemiBold',
     fontSize: 16,
-    color: COLORS.pink,
+    color: COLORS.primary,
   },
 });

@@ -20,7 +20,7 @@ export default function TabLayout() {
           paddingTop: 6,
           paddingBottom: bottomPad,
         },
-        tabBarActiveTintColor: COLORS.pink,
+        tabBarActiveTintColor: COLORS.primary,
         tabBarInactiveTintColor: COLORS.textLight,
         tabBarLabelStyle: styles.label,
       }}

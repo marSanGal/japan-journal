@@ -29,6 +29,6 @@ const styles = StyleSheet.create({
   link: {
     fontFamily: 'Nunito_600SemiBold',
     fontSize: 16,
-    color: COLORS.pink,
+    color: COLORS.primary,
   },
 });

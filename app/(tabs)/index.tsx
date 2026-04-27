@@ -22,6 +22,7 @@ import AddEntrySheet from '../../components/AddEntrySheet';
 import SyncPanel from '../../components/SyncPanel';
 import ExtraPhotos from '../../components/ExtraPhotos';
 import EkiStampCounter from '../../components/EkiStampCounter';
+import SeigaihaBackground from '../../components/SeigaihaBackground';
 import { fetchWeatherForDate } from '../../lib/weather';
 import { fetchLiveRate } from '../../lib/currency';
 
@@ -76,6 +77,7 @@ export default function TodayScreen() {
 
   return (
     <View style={styles.container}>
+      <SeigaihaBackground />
       <FlatList
         data={entries}
         keyExtractor={(item) => item.id}
@@ -94,7 +96,7 @@ export default function TodayScreen() {
         }
         ListEmptyComponent={
           <View style={styles.empty}>
-            <Text style={styles.emptyIcon}>🌸</Text>
+            <Text style={styles.emptyIcon}>🖌️</Text>
             <Text style={styles.emptyText}>
               Your story begins here.{'\n'}Tap the pencil to log your first moment!
             </Text>
@@ -214,7 +216,7 @@ const styles = StyleSheet.create({
     color: COLORS.blue,
   },
   chapterButton: {
-    backgroundColor: COLORS.pink,
+    backgroundColor: COLORS.primary,
     borderRadius: 14,
     padding: 16,
     alignItems: 'center',

@@ -26,7 +26,7 @@ const POSTCARD_CSS = `
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
     font-family: 'Georgia', serif;
-    background: #FFF0F5;
+    background: #F5F0E8;
     width: 1080px;
     height: 1920px;
     display: flex;
@@ -64,30 +64,30 @@ const POSTCARD_CSS = `
   }
   .quote-section {
     padding: 50px;
-    background: #FFF8F0;
+    background: #EBE4D8;
     min-height: 400px;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    border-top: 4px solid #F4A7BB;
+    border-top: 4px solid #2C4A5A;
   }
   .quote {
     font-style: italic;
     font-size: 36px;
     line-height: 1.6;
-    color: #4A3728;
+    color: #2B2B2B;
     margin-bottom: 30px;
   }
   .highlights {
     font-size: 20px;
-    color: #8B7B6B;
+    color: #7A756A;
     line-height: 1.8;
   }
   .brand {
     text-align: center;
     padding: 20px;
     font-size: 18px;
-    color: #C5A8D8;
+    color: #7A6B8A;
     letter-spacing: 2px;
   }
 `;
@@ -106,7 +106,7 @@ function buildPostcardBody(
     .map((e) => `${CATEGORY_CONFIG[e.category].icon} ${e.text.slice(0, 50)}`)
     .join(' · ');
 
-  const photoBg = photo ? `url('${photo}') center/cover` : '#F4A7BB';
+  const photoBg = photo ? `url('${photo}') center/cover` : '#2C4A5A';
   const bodyHtml = `
   <div class="photo-section">
     <div class="overlay">
@@ -119,7 +119,7 @@ function buildPostcardBody(
     ${quote ? `<div class="quote">"${escapeHtml(quote)}"</div>` : ''}
     <div class="highlights">${escapeHtml(entryHighlights)}</div>
   </div>
-  <div class="brand">🌸 Japan Journal</div>`;
+  <div class="brand">🖌️ Japan Journal</div>`;
 
   return { bodyHtml, photoBg };
 }
@@ -170,7 +170,7 @@ export const buildPostcardPreviewHtml = (
     width: ${previewWidth}px;
     height: ${previewHeight}px;
     overflow: hidden;
-    background: #FFF0F5;
+    background: #F5F0E8;
   }
   .scale-wrapper {
     width: 1080px;

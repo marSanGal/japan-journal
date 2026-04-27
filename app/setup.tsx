@@ -252,10 +252,10 @@ const styles = StyleSheet.create({
   addText: {
     fontFamily: 'Nunito_600SemiBold',
     fontSize: 14,
-    color: COLORS.pink,
+    color: COLORS.primary,
   },
   button: {
-    backgroundColor: COLORS.pink,
+    backgroundColor: COLORS.primary,
     borderRadius: 16,
     padding: 16,
     alignItems: 'center',

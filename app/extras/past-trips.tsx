@@ -137,7 +137,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 16,
     borderWidth: 2,
-    borderColor: COLORS.pink,
+    borderColor: COLORS.primary,
   },
   tripName: { fontFamily: 'Nunito_700Bold', fontSize: 18, color: COLORS.text, marginBottom: 4 },
   tripMeta: { fontFamily: 'Nunito_400Regular', fontSize: 13, color: COLORS.textLight, marginBottom: 4 },

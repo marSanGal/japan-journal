@@ -191,7 +191,7 @@ const styles = StyleSheet.create({
     borderColor: COLORS.border,
   },
   shareButton: {
-    backgroundColor: COLORS.pink,
+    backgroundColor: COLORS.primary,
     borderRadius: 12,
     padding: 14,
     alignItems: 'center',

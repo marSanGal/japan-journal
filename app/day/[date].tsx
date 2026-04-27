@@ -128,7 +128,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   chapterButton: {
-    backgroundColor: COLORS.pink,
+    backgroundColor: COLORS.primary,
     borderRadius: 14,
     padding: 16,
     alignItems: 'center',

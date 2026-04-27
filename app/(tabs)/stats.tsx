@@ -5,6 +5,7 @@ import { useJournalStore } from '../../lib/store';
 import { COLORS, CATEGORY_CONFIG, getTravelerColor, getCategoryDisplay } from '../../lib/constants';
 import { formatYenWithGbp } from '../../lib/currency';
 import { EntryCategory, Entry } from '../../lib/types';
+import SeigaihaBackground from '../../components/SeigaihaBackground';
 
 export default function StatsScreen() {
   const router = useRouter();
@@ -88,6 +89,8 @@ export default function StatsScreen() {
   })();
 
   return (
+    <View style={{ flex: 1, backgroundColor: COLORS.background }}>
+    <SeigaihaBackground />
     <ScrollView style={styles.container} contentContainerStyle={styles.scroll}>
       <View style={styles.header}>
         <Text style={styles.title}>⭐ Trip Stats</Text>
@@ -298,6 +301,7 @@ export default function StatsScreen() {
         </View>
       )}
     </ScrollView>
+    </View>
   );
 }
 
@@ -467,7 +471,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   dayCountBadge: {
-    backgroundColor: COLORS.pink + '30',
+    backgroundColor: COLORS.primary + '30',
     paddingHorizontal: 10,
     paddingVertical: 3,
     borderRadius: 10,
@@ -475,7 +479,7 @@ const styles = StyleSheet.create({
   dayCountText: {
     fontFamily: 'Nunito_600SemiBold',
     fontSize: 12,
-    color: COLORS.pink,
+    color: COLORS.primary,
   },
   dayChapterIcon: {
     fontSize: 16,

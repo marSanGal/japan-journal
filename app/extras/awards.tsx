@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   valueBadge: {
-    backgroundColor: COLORS.pink + '20',
+    backgroundColor: COLORS.primary + '20',
     borderRadius: 10,
     paddingHorizontal: 10,
     paddingVertical: 4,
@@ -110,7 +110,7 @@ const styles = StyleSheet.create({
   awardValue: {
     fontFamily: 'Nunito_700Bold',
     fontSize: 13,
-    color: COLORS.pink,
+    color: COLORS.primary,
   },
   emptyState: {
     alignItems: 'center',

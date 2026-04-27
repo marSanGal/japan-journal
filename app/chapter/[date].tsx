@@ -101,7 +101,7 @@ export default function ChapterScreen() {
             {loading ? (
               <View style={styles.loadingContainer}>
                 <Text style={styles.loadingIcon}>📝</Text>
-                <ActivityIndicator size="small" color={COLORS.pink} />
+                <ActivityIndicator size="small" color={COLORS.primary} />
                 <Text style={styles.loadingText}>
                   Writing your chapter...
                 </Text>
@@ -145,7 +145,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   generateButton: {
-    backgroundColor: COLORS.pink,
+    backgroundColor: COLORS.primary,
     borderRadius: 16,
     padding: 18,
     alignItems: 'center',

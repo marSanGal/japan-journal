@@ -131,7 +131,7 @@ const styles = StyleSheet.create({
     borderColor: COLORS.border,
   },
   recordingActive: {
-    backgroundColor: '#FFE0E0',
+    backgroundColor: COLORS.red + '30',
     borderColor: COLORS.red,
   },
   recordIcon: {

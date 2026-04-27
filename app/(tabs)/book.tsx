@@ -16,6 +16,7 @@ import { COLORS, getTripDays } from '../../lib/constants';
 import { generateEpilogue } from '../../lib/openai';
 import { exportPdf } from '../../lib/export-pdf';
 import ChapterCard from '../../components/ChapterCard';
+import SeigaihaBackground from '../../components/SeigaihaBackground';
 
 interface ChapterItem {
   date: string;
@@ -98,6 +99,7 @@ export default function BookScreen() {
 
   return (
     <View style={styles.container}>
+      <SeigaihaBackground />
       <FlatList
         data={chapters}
         keyExtractor={(item) => item.date}
@@ -156,7 +158,7 @@ export default function BookScreen() {
             {loading ? (
               <View style={styles.loadingContainer}>
                 <Text style={styles.loadingIcon}>📝</Text>
-                <ActivityIndicator size="small" color={COLORS.pink} />
+                <ActivityIndicator size="small" color={COLORS.primary} />
                 <Text style={styles.loadingText}>Writing your epilogue...</Text>
               </View>
             ) : (
@@ -278,7 +280,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   countBadge: {
-    backgroundColor: COLORS.pink + '30',
+    backgroundColor: COLORS.primary + '30',
     paddingHorizontal: 10,
     paddingVertical: 3,
     borderRadius: 10,
@@ -286,7 +288,7 @@ const styles = StyleSheet.create({
   countText: {
     fontFamily: 'Nunito_600SemiBold',
     fontSize: 12,
-    color: COLORS.pink,
+    color: COLORS.primary,
   },
   arrow: {
     fontFamily: 'Nunito_700Bold',
@@ -298,7 +300,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   epilogueButton: {
-    backgroundColor: COLORS.pink,
+    backgroundColor: COLORS.primary,
     borderRadius: 16,
     padding: 18,
     alignItems: 'center',

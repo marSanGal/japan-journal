@@ -22,6 +22,7 @@ import { CATEGORY_CONFIG, COLORS, CUSTOM_COLOR_OPTIONS, getCategoryDisplay } fro
 import { Entry, EntryCategory, Dish, Song, TrainType, BarGenre, CustomCategory } from '../lib/types';
 import { fetchNearbyPlaces } from '../lib/nearby';
 import AudioRecorder from './AudioRecorder';
+import { useShazam } from '../lib/useShazam';
 
 const TRAIN_TYPES: { value: TrainType; label: string }[] = [
   { value: 'metro', label: 'Metro' },
@@ -93,6 +94,7 @@ export default function AddEntrySheet({ sheetRef, editingEntry, onEditDone, forD
   const [hadLiveMusic, setHadLiveMusic] = useState(false);
   const [barGenre, setBarGenre] = useState<BarGenre>('metal');
   const [songs, setSongs] = useState<Song[]>([]);
+  const { isListening, startListening, stopListening } = useShazam();
 
   // Custom category
   const [customCategoryId, setCustomCategoryId] = useState<string | undefined>(undefined);
@@ -264,6 +266,18 @@ export default function AddEntrySheet({ sheetRef, editingEntry, onEditDone, forD
 
   const removeSong = (index: number) => {
     setSongs((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleShazam = async () => {
+    if (isListening) {
+      stopListening();
+      return;
+    }
+    const song = await startListening();
+    if (song) {
+      setSongs((prev) => [...prev, song]);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    }
   };
 
   const buildAutoText = (): string => {
@@ -855,9 +869,25 @@ export default function AddEntrySheet({ sheetRef, editingEntry, onEditDone, forD
                   />
                 </View>
               ))}
-              <TouchableOpacity style={styles.addSongButton} onPress={addSong}>
-                <Text style={styles.addSongText}>+ Add Song</Text>
-              </TouchableOpacity>
+              <View style={styles.songButtonsRow}>
+                <TouchableOpacity style={styles.addSongButton} onPress={addSong}>
+                  <Text style={styles.addSongText}>+ Add Song</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.shazamButton, isListening && styles.shazamButtonActive]}
+                  onPress={handleShazam}
+                  activeOpacity={0.7}
+                >
+                  {isListening ? (
+                    <ActivityIndicator size="small" color={COLORS.white} />
+                  ) : (
+                    <Text style={styles.shazamButtonText}>🎧 Shazam It</Text>
+                  )}
+                  {isListening && (
+                    <Text style={styles.shazamListeningText}>Listening...</Text>
+                  )}
+                </TouchableOpacity>
+              </View>
             </View>
           )}
 
@@ -1005,7 +1035,7 @@ const styles = StyleSheet.create({
   backText: {
     fontFamily: 'Nunito_600SemiBold',
     fontSize: 16,
-    color: COLORS.pink,
+    color: COLORS.primary,
   },
   textInput: {
     fontFamily: 'Nunito_400Regular',
@@ -1180,7 +1210,7 @@ const styles = StyleSheet.create({
     color: COLORS.white,
   },
   saveButton: {
-    backgroundColor: COLORS.pink,
+    backgroundColor: COLORS.primary,
     borderRadius: 16,
     padding: 16,
     alignItems: 'center',
@@ -1331,8 +1361,8 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   trainTypeChipSelected: {
-    backgroundColor: '#A8B8D8',
-    borderColor: '#A8B8D8',
+    backgroundColor: COLORS.blue,
+    borderColor: COLORS.blue,
   },
   trainTypeText: {
     fontFamily: 'Nunito_600SemiBold',
@@ -1346,18 +1376,23 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   barGenreChipSelected: {
-    backgroundColor: '#8B6F8E',
-    borderColor: '#8B6F8E',
+    backgroundColor: COLORS.purple,
+    borderColor: COLORS.purple,
   },
   barGenreTextSelected: {
     color: COLORS.white,
   },
   liveMusicToggleActive: {
-    borderColor: '#8B6F8E',
-    backgroundColor: '#8B6F8E' + '15',
+    borderColor: COLORS.purple,
+    backgroundColor: COLORS.purple + '15',
+  },
+  songButtonsRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 8,
   },
   addSongButton: {
-    marginTop: 8,
+    flex: 1,
     paddingVertical: 12,
     alignItems: 'center',
     borderRadius: 12,
@@ -1368,7 +1403,30 @@ const styles = StyleSheet.create({
   addSongText: {
     fontFamily: 'Nunito_600SemiBold',
     fontSize: 14,
-    color: '#8B6F8E',
+    color: COLORS.purple,
+  },
+  shazamButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 12,
+    borderRadius: 12,
+    backgroundColor: COLORS.purple,
+  },
+  shazamButtonActive: {
+    backgroundColor: COLORS.primary,
+  },
+  shazamButtonText: {
+    fontFamily: 'Nunito_600SemiBold',
+    fontSize: 14,
+    color: COLORS.white,
+  },
+  shazamListeningText: {
+    fontFamily: 'Nunito_600SemiBold',
+    fontSize: 14,
+    color: COLORS.white,
   },
   addCatButton: {
     width: '30%',

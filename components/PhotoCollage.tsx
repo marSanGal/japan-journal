@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
   shareButton: {
     marginTop: 8,
     alignSelf: 'center',
-    backgroundColor: COLORS.pink,
+    backgroundColor: COLORS.primary,
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 14,
