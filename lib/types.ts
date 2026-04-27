@@ -11,7 +11,8 @@ export type EntryCategory =
   | 'train'
   | 'bar'
   | 'gachapon'
-  | 'vending';
+  | 'vending'
+  | 'custom';
 
 export interface Dish {
   name: string;
@@ -63,6 +64,7 @@ export interface Entry {
   hadLiveMusic?: boolean;
   barGenre?: BarGenre;
   songs?: Song[];
+  customCategoryId?: string;
 }
 
 export interface DayLog {
@@ -81,6 +83,14 @@ export interface DayLog {
 export interface ExtraMediaItem {
   uri: string;
   type: 'photo' | 'video';
+}
+
+export interface CustomCategory {
+  id: string;
+  label: string;
+  icon: string;
+  color: string;
+  showInStats: boolean;
 }
 
 export interface EkiStamp {

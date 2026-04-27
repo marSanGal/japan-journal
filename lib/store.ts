@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { format } from 'date-fns';
-import { TripConfig, Entry, DayLog, EkiStamp, ExtraMediaItem } from './types';
+import { TripConfig, Entry, DayLog, EkiStamp, ExtraMediaItem, CustomCategory } from './types';
 import { GoshuinStamp } from './goshuin';
 import { ManholeEntry } from './manholes';
 
@@ -14,6 +14,7 @@ interface JournalState {
   konbiniChecked: string[];
   manholeCovers: ManholeEntry[];
   ekiStamps: EkiStamp[];
+  customCategories: CustomCategory[];
   narratorPersona: string;
   pastTrips: { name: string; config: TripConfig; days: Record<string, DayLog>; epilogue: string | null }[];
 
@@ -38,6 +39,9 @@ interface JournalState {
   removeExtraPhoto: (date: string, uri: string) => void;
   addExtraMedia: (date: string, item: ExtraMediaItem) => void;
   removeExtraMedia: (date: string, uri: string) => void;
+  addCustomCategory: (cat: CustomCategory) => void;
+  updateCustomCategory: (id: string, updates: Partial<CustomCategory>) => void;
+  deleteCustomCategory: (id: string) => void;
   setNarratorPersona: (persona: string) => void;
   archiveTrip: () => void;
   getDayLog: (date: string) => DayLog;
@@ -60,6 +64,7 @@ export const useJournalStore = create<JournalState>()(
       konbiniChecked: [],
       manholeCovers: [],
       ekiStamps: [],
+      customCategories: [],
       narratorPersona: 'ghibli',
       pastTrips: [],
 
@@ -231,6 +236,23 @@ export const useJournalStore = create<JournalState>()(
           return { days: { ...state.days, [date]: { ...day, extraMedia: media } } };
         }),
 
+      addCustomCategory: (cat) =>
+        set((state) => ({
+          customCategories: [...state.customCategories, cat],
+        })),
+
+      updateCustomCategory: (id, updates) =>
+        set((state) => ({
+          customCategories: state.customCategories.map((c) =>
+            c.id === id ? { ...c, ...updates } : c
+          ),
+        })),
+
+      deleteCustomCategory: (id) =>
+        set((state) => ({
+          customCategories: state.customCategories.filter((c) => c.id !== id),
+        })),
+
       setNarratorPersona: (persona) => set({ narratorPersona: persona }),
 
       archiveTrip: () =>
@@ -251,6 +273,7 @@ export const useJournalStore = create<JournalState>()(
             konbiniChecked: [],
             manholeCovers: [],
             ekiStamps: [],
+            customCategories: [],
           };
         }),
 

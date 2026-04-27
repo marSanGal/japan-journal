@@ -1,4 +1,4 @@
-import { EntryCategory } from './types';
+import { EntryCategory, CustomCategory } from './types';
 
 export const COLORS = {
   background: '#FFF0F5',
@@ -45,6 +45,7 @@ export const CATEGORY_CONFIG: Record<
   bar: { label: 'Bar', icon: '🎸', color: '#8B6F8E' },
   gachapon: { label: 'Gachapon', icon: '🎰', color: '#E8A0B8' },
   vending: { label: 'Vending', icon: '🥤', color: '#7EBFA8' },
+  custom: { label: 'Custom', icon: '📌', color: '#B8C8A8' },
 };
 
 export const WEATHER_OPTIONS = [
@@ -57,6 +58,23 @@ export const WEATHER_OPTIONS = [
 ];
 
 export const USD_PER_YEN = 0.0067;
+
+export const CUSTOM_COLOR_OPTIONS = [
+  '#F4A7BB', '#A8D4E6', '#A8D8A8', '#C5A8D8',
+  '#F4C28C', '#E89090', '#B8C8A8', '#7EBFA8',
+];
+
+export function getCategoryDisplay(
+  category: EntryCategory,
+  customCategoryId?: string,
+  customCategories?: CustomCategory[]
+): { label: string; icon: string; color: string } {
+  if (category === 'custom' && customCategoryId && customCategories) {
+    const found = customCategories.find((c) => c.id === customCategoryId);
+    if (found) return { label: found.label, icon: found.icon, color: found.color };
+  }
+  return CATEGORY_CONFIG[category];
+}
 
 export const getTravelerColor = (
   name: string,

@@ -1,7 +1,7 @@
 import { View, Text, TouchableOpacity, Image, StyleSheet, Linking } from 'react-native';
 import { format } from 'date-fns';
 import { Entry } from '../lib/types';
-import { CATEGORY_CONFIG, COLORS, getTravelerColor } from '../lib/constants';
+import { COLORS, getTravelerColor, getCategoryDisplay } from '../lib/constants';
 import { useJournalStore } from '../lib/store';
 import { formatYen } from '../lib/currency';
 import AudioPlayer from './AudioPlayer';
@@ -14,7 +14,8 @@ interface Props {
 
 export default function EntryCard({ entry, onLongPress, onPress }: Props) {
   const config = useJournalStore((s) => s.config);
-  const catConfig = CATEGORY_CONFIG[entry.category];
+  const customCategories = useJournalStore((s) => s.customCategories);
+  const catConfig = getCategoryDisplay(entry.category, entry.customCategoryId, customCategories);
   const time = format(new Date(entry.timestamp), 'h:mm a');
   const allNames = config ? [config.myName, ...config.partners] : [];
   const authorColor = getTravelerColor(entry.author, allNames);

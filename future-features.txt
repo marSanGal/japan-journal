@@ -1,0 +1,3 @@
+- Trip awards between a bunch of people
+- Being able to add your preferred things to track (revisit what things to track)
+- Select country for new trip (some will be less specific than others)

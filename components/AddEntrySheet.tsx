@@ -18,8 +18,8 @@ import 'react-native-get-random-values';
 import { v4 as uuid } from 'uuid';
 import { format } from 'date-fns';
 import { useJournalStore } from '../lib/store';
-import { CATEGORY_CONFIG, COLORS } from '../lib/constants';
-import { Entry, EntryCategory, Dish, Song, TrainType, BarGenre } from '../lib/types';
+import { CATEGORY_CONFIG, COLORS, CUSTOM_COLOR_OPTIONS, getCategoryDisplay } from '../lib/constants';
+import { Entry, EntryCategory, Dish, Song, TrainType, BarGenre, CustomCategory } from '../lib/types';
 import { fetchNearbyPlaces } from '../lib/nearby';
 import AudioRecorder from './AudioRecorder';
 
@@ -51,6 +51,9 @@ export default function AddEntrySheet({ sheetRef, editingEntry, onEditDone, forD
   const addEntry = useJournalStore((s) => s.addEntry);
   const updateEntry = useJournalStore((s) => s.updateEntry);
   const addGoshuinStamp = useJournalStore((s) => s.addGoshuinStamp);
+  const customCategories = useJournalStore((s) => s.customCategories);
+  const addCustomCategory = useJournalStore((s) => s.addCustomCategory);
+  const updateCustomCategory = useJournalStore((s) => s.updateCustomCategory);
 
   const allTravelers = useMemo(
     () => (config ? [config.myName, ...config.partners] : []),
@@ -91,6 +94,15 @@ export default function AddEntrySheet({ sheetRef, editingEntry, onEditDone, forD
   const [barGenre, setBarGenre] = useState<BarGenre>('metal');
   const [songs, setSongs] = useState<Song[]>([]);
 
+  // Custom category
+  const [customCategoryId, setCustomCategoryId] = useState<string | undefined>(undefined);
+  const [showCreateCategory, setShowCreateCategory] = useState(false);
+  const [editingCatId, setEditingCatId] = useState<string | null>(null);
+  const [newCatName, setNewCatName] = useState('');
+  const [newCatIcon, setNewCatIcon] = useState('📌');
+  const [newCatColor, setNewCatColor] = useState(CUSTOM_COLOR_OPTIONS[0]);
+  const [newCatShowInStats, setNewCatShowInStats] = useState(false);
+
   const isEditing = !!editingEntry;
 
   useEffect(() => {
@@ -116,6 +128,7 @@ export default function AddEntrySheet({ sheetRef, editingEntry, onEditDone, forD
       setHadLiveMusic(editingEntry.hadLiveMusic || false);
       setBarGenre(editingEntry.barGenre || 'metal');
       setSongs(editingEntry.songs || []);
+      setCustomCategoryId(editingEntry.customCategoryId);
     }
   }, [editingEntry]);
 
@@ -153,6 +166,13 @@ export default function AddEntrySheet({ sheetRef, editingEntry, onEditDone, forD
     setHadLiveMusic(false);
     setBarGenre('metal');
     setSongs([]);
+    setCustomCategoryId(undefined);
+    setShowCreateCategory(false);
+    setEditingCatId(null);
+    setNewCatName('');
+    setNewCatIcon('📌');
+    setNewCatColor(CUSTOM_COLOR_OPTIONS[0]);
+    setNewCatShowInStats(false);
   };
 
   const handleGpsLookup = async () => {
@@ -259,6 +279,10 @@ export default function AddEntrySheet({ sheetRef, editingEntry, onEditDone, forD
     }
     if (category === 'gachapon') return 'Gachapon pull';
     if (category === 'vending') return 'Vending machine find';
+    if (category === 'custom' && customCategoryId) {
+      const cc = customCategories.find((c) => c.id === customCategoryId);
+      return cc?.label || 'Custom entry';
+    }
     return CATEGORY_CONFIG[category].label;
   };
 
@@ -293,6 +317,7 @@ export default function AddEntrySheet({ sheetRef, editingEntry, onEditDone, forD
       songs: category === 'bar' && songs.length > 0
         ? songs.filter((s) => s.name.trim())
         : undefined,
+      customCategoryId: category === 'custom' ? customCategoryId : undefined,
     };
 
     if (isEditing && editingEntry) {
@@ -337,12 +362,53 @@ export default function AddEntrySheet({ sheetRef, editingEntry, onEditDone, forD
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     reset();
     sheetRef.current?.close();
-  }, [category, text, location, amountYen, stepsCount, participants, timeOffset, config, addEntry, updateEntry, addGoshuinStamp, sheetRef, photoUri, audioUri, isEditing, editingEntry, onEditDone, forDate, hasGoshuin, goshuinPhotoUri, dishes, engrishContext, fromStation, toStation, trainType, hadLiveMusic, barGenre, songs]);
+  }, [category, text, location, amountYen, stepsCount, participants, timeOffset, config, addEntry, updateEntry, addGoshuinStamp, sheetRef, photoUri, audioUri, isEditing, editingEntry, onEditDone, forDate, hasGoshuin, goshuinPhotoUri, dishes, engrishContext, fromStation, toStation, trainType, hadLiveMusic, barGenre, songs, customCategoryId, customCategories]);
 
-  const categories = Object.entries(CATEGORY_CONFIG) as [
+  const builtInCategories = (Object.entries(CATEGORY_CONFIG) as [
     EntryCategory,
     (typeof CATEGORY_CONFIG)[EntryCategory],
-  ][];
+  ][]).filter(([key]) => key !== 'custom');
+
+  const handleCreateCategory = () => {
+    if (!newCatName.trim()) return;
+    if (editingCatId) {
+      updateCustomCategory(editingCatId, {
+        label: newCatName.trim(),
+        icon: newCatIcon || '📌',
+        color: newCatColor,
+        showInStats: newCatShowInStats,
+      });
+      setShowCreateCategory(false);
+      setEditingCatId(null);
+    } else {
+      const id = newCatName.trim().toLowerCase().replace(/\s+/g, '-') + '-' + Date.now();
+      const newCat: CustomCategory = {
+        id,
+        label: newCatName.trim(),
+        icon: newCatIcon || '📌',
+        color: newCatColor,
+        showInStats: newCatShowInStats,
+      };
+      addCustomCategory(newCat);
+      setShowCreateCategory(false);
+      setCategory('custom');
+      setCustomCategoryId(id);
+    }
+    setNewCatName('');
+    setNewCatIcon('📌');
+    setNewCatColor(CUSTOM_COLOR_OPTIONS[0]);
+    setNewCatShowInStats(false);
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+  };
+
+  const handleEditCategory = (cc: CustomCategory) => {
+    setNewCatName(cc.label);
+    setNewCatIcon(cc.icon);
+    setNewCatColor(cc.color);
+    setNewCatShowInStats(cc.showInStats);
+    setEditingCatId(cc.id);
+    setShowCreateCategory(true);
+  };
 
   const getPlaceholder = (): string => {
     if (category === 'engrish') return 'The exact phrase you saw...';
@@ -351,6 +417,7 @@ export default function AddEntrySheet({ sheetRef, editingEntry, onEditDone, forD
     if (category === 'bar') return 'Venue name or vibe (optional)';
     if (category === 'gachapon') return 'What did you get?';
     if (category === 'vending') return 'What drink/item?';
+    if (category === 'custom') return 'What happened?';
     return 'What happened?';
   };
 
@@ -372,11 +439,15 @@ export default function AddEntrySheet({ sheetRef, editingEntry, onEditDone, forD
         }
       }}
     >
-      {!category ? (
-        <BottomSheetView style={styles.content}>
+      {!category && !showCreateCategory ? (
+        <BottomSheetScrollView
+          style={styles.form}
+          contentContainerStyle={{ padding: 20, paddingBottom: 60 }}
+          showsVerticalScrollIndicator={false}
+        >
           <Text style={styles.title}>{isEditing ? 'Edit Entry' : 'New Entry'}</Text>
           <View style={styles.grid}>
-            {categories.map(([key, cfg]) => (
+            {builtInCategories.map(([key, cfg]) => (
               <TouchableOpacity
                 key={key}
                 style={[styles.catButton, { backgroundColor: cfg.color + '30' }]}
@@ -390,8 +461,115 @@ export default function AddEntrySheet({ sheetRef, editingEntry, onEditDone, forD
                 <Text style={styles.catLabel}>{cfg.label}</Text>
               </TouchableOpacity>
             ))}
+            {customCategories.map((cc) => (
+              <TouchableOpacity
+                key={cc.id}
+                style={[styles.catButton, { backgroundColor: cc.color + '30' }]}
+                onPress={() => {
+                  setCategory('custom');
+                  setCustomCategoryId(cc.id);
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                }}
+                onLongPress={() => handleEditCategory(cc)}
+                delayLongPress={500}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.catIcon}>{cc.icon}</Text>
+                <Text style={styles.catLabel}>{cc.label}</Text>
+              </TouchableOpacity>
+            ))}
+            <TouchableOpacity
+              style={styles.addCatButton}
+              onPress={() => setShowCreateCategory(true)}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.addCatPlus}>+</Text>
+              <Text style={styles.catLabel}>New</Text>
+            </TouchableOpacity>
           </View>
-        </BottomSheetView>
+        </BottomSheetScrollView>
+      ) : !category && showCreateCategory ? (
+        <BottomSheetScrollView
+          style={styles.form}
+          contentContainerStyle={styles.formContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <Text style={styles.title}>{editingCatId ? 'Edit Category' : 'Create Category'}</Text>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => {
+              setShowCreateCategory(false);
+              setEditingCatId(null);
+              setNewCatName('');
+              setNewCatIcon('📌');
+              setNewCatColor(CUSTOM_COLOR_OPTIONS[0]);
+              setNewCatShowInStats(false);
+            }}
+          >
+            <Text style={styles.backText}>← Back to categories</Text>
+          </TouchableOpacity>
+
+          <TextInput
+            style={styles.input}
+            value={newCatName}
+            onChangeText={setNewCatName}
+            placeholder="Category name"
+            placeholderTextColor={COLORS.textLight}
+            autoFocus
+          />
+
+          <Text style={styles.rowLabel}>Icon (emoji)</Text>
+          <TextInput
+            style={[styles.input, { fontSize: 28, textAlign: 'center' }]}
+            value={newCatIcon}
+            onChangeText={(val) => setNewCatIcon(val.slice(-2))}
+            placeholder="📌"
+            placeholderTextColor={COLORS.textLight}
+          />
+
+          <Text style={styles.rowLabel}>Color</Text>
+          <View style={styles.colorRow}>
+            {CUSTOM_COLOR_OPTIONS.map((c) => (
+              <TouchableOpacity
+                key={c}
+                style={[
+                  styles.colorSwatch,
+                  { backgroundColor: c },
+                  newCatColor === c && styles.colorSwatchSelected,
+                ]}
+                onPress={() => setNewCatColor(c)}
+                activeOpacity={0.7}
+              />
+            ))}
+          </View>
+
+          <View style={styles.previewTile}>
+            <View style={[styles.catButton, { backgroundColor: newCatColor + '30' }]}>
+              <Text style={styles.catIcon}>{newCatIcon || '📌'}</Text>
+              <Text style={styles.catLabel}>{newCatName || 'Preview'}</Text>
+            </View>
+          </View>
+
+          <TouchableOpacity
+            style={[styles.goshuinToggle, newCatShowInStats && styles.goshuinToggleActive]}
+            onPress={() => setNewCatShowInStats(!newCatShowInStats)}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.goshuinToggleText}>
+              {newCatShowInStats ? '✅' : '⬜'} Show total count in Trip Stats
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.saveButton, !newCatName.trim() && { opacity: 0.4 }]}
+            onPress={handleCreateCategory}
+            disabled={!newCatName.trim()}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.saveText}>{editingCatId ? 'Save Changes' : 'Create & Use'}</Text>
+          </TouchableOpacity>
+        </BottomSheetScrollView>
       ) : (
         <BottomSheetScrollView
           style={styles.form}
@@ -413,7 +591,8 @@ export default function AddEntrySheet({ sheetRef, editingEntry, onEditDone, forD
             }}
           >
             <Text style={styles.backText}>
-              ← {CATEGORY_CONFIG[category].icon} {CATEGORY_CONFIG[category].label}
+              ← {getCategoryDisplay(category, customCategoryId, customCategories).icon}{' '}
+              {getCategoryDisplay(category, customCategoryId, customCategories).label}
             </Text>
           </TouchableOpacity>
 
@@ -1190,5 +1369,42 @@ const styles = StyleSheet.create({
     fontFamily: 'Nunito_600SemiBold',
     fontSize: 14,
     color: '#8B6F8E',
+  },
+  addCatButton: {
+    width: '30%',
+    aspectRatio: 1,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+    borderWidth: 2,
+    borderColor: COLORS.border,
+    borderStyle: 'dashed',
+  },
+  addCatPlus: {
+    fontSize: 28,
+    color: COLORS.textLight,
+  },
+  colorRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    marginBottom: 16,
+    marginTop: 8,
+  },
+  colorSwatch: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  colorSwatchSelected: {
+    borderColor: COLORS.text,
+    borderWidth: 3,
+  },
+  previewTile: {
+    alignItems: 'center',
+    marginBottom: 16,
   },
 });

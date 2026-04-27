@@ -2,7 +2,7 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet, useWindowDimensio
 import { useRouter } from 'expo-router';
 import { format } from 'date-fns';
 import { useJournalStore } from '../../lib/store';
-import { COLORS, CATEGORY_CONFIG, getTravelerColor } from '../../lib/constants';
+import { COLORS, CATEGORY_CONFIG, getTravelerColor, getCategoryDisplay } from '../../lib/constants';
 import { formatYenWithUsd } from '../../lib/currency';
 import { EntryCategory, Entry } from '../../lib/types';
 
@@ -15,6 +15,7 @@ export default function StatsScreen() {
   const manholeCount = useJournalStore((s) => s.manholeCovers.length);
   const persona = useJournalStore((s) => s.narratorPersona);
   const pastTripsCount = useJournalStore((s) => s.pastTrips.length);
+  const customCategories = useJournalStore((s) => s.customCategories);
 
   const { width: screenWidth } = useWindowDimensions();
   const tileWidth = (screenWidth - 32 - 8) / 2;
@@ -59,7 +60,10 @@ export default function StatsScreen() {
 
   const categoryCounts: Record<string, number> = {};
   for (const entry of allEntries) {
-    categoryCounts[entry.category] = (categoryCounts[entry.category] || 0) + 1;
+    const key = entry.category === 'custom' && entry.customCategoryId
+      ? `custom:${entry.customCategoryId}`
+      : entry.category;
+    categoryCounts[key] = (categoryCounts[key] || 0) + 1;
   }
   const sortedCategories = Object.entries(categoryCounts)
     .sort((a, b) => b[1] - a[1])
@@ -103,6 +107,22 @@ export default function StatsScreen() {
         <StatBox label="Total Spent" value={totalYen > 0 ? formatYenWithUsd(totalYen) : '¥0'} icon="💴" width={tileWidth} />
         <StatBox label="Total Steps" value={totalSteps > 0 ? totalSteps.toLocaleString() : '0'} icon="👣" width={tileWidth} />
         <StatBox label="Eki Stamps" value={totalEkiStamps.toString()} icon="🔖" width={tileWidth} />
+        {customCategories
+          .filter((cc) => cc.showInStats)
+          .map((cc) => {
+            const count = allEntries.filter(
+              (e) => e.category === 'custom' && e.customCategoryId === cc.id
+            ).length;
+            return (
+              <StatBox
+                key={cc.id}
+                label={cc.label}
+                value={count.toString()}
+                icon={cc.icon}
+                width={tileWidth}
+              />
+            );
+          })}
       </View>
 
       {spendingData.length > 0 && (
@@ -266,7 +286,13 @@ export default function StatsScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Top Categories</Text>
           {sortedCategories.map(([cat, count]) => {
-            const cfg = CATEGORY_CONFIG[cat as EntryCategory];
+            let cfg: { label: string; icon: string; color: string };
+            if (cat.startsWith('custom:')) {
+              const ccId = cat.slice(7);
+              cfg = getCategoryDisplay('custom', ccId, customCategories);
+            } else {
+              cfg = CATEGORY_CONFIG[cat as EntryCategory];
+            }
             if (!cfg) return null;
             const pct =
               totalEntries > 0 ? Math.round((count / totalEntries) * 100) : 0;
