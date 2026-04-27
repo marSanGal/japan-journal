@@ -4,6 +4,7 @@ import {
   Text,
   TouchableOpacity,
   FlatList,
+  ScrollView,
   StyleSheet,
   Alert,
   useWindowDimensions,
@@ -14,7 +15,16 @@ import * as Sharing from 'expo-sharing';
 import { format } from 'date-fns';
 import { useJournalStore } from '../../lib/store';
 import { COLORS } from '../../lib/constants';
-import { buildPostcardHtml, buildPostcardPreviewHtml } from '../../lib/postcards';
+import { PostcardStyle } from '../../lib/types';
+import { buildPostcardHtml, buildPostcardPreviewHtml, suggestStyle } from '../../lib/postcards';
+
+const STYLE_OPTIONS: { id: PostcardStyle; label: string; icon: string }[] = [
+  { id: 'classic', label: 'Classic', icon: '🖼️' },
+  { id: 'collage', label: 'Collage', icon: '📸' },
+  { id: 'timeline', label: 'Timeline', icon: '⏱️' },
+  { id: 'foodie', label: 'Foodie', icon: '🍜' },
+  { id: 'explorer', label: 'Explorer', icon: '🗺️' },
+];
 
 export default function PostcardScreen() {
   const config = useJournalStore((s) => s.config);
@@ -22,6 +32,7 @@ export default function PostcardScreen() {
   const customCategories = useJournalStore((s) => s.customCategories);
   const [generating, setGenerating] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [selectedStyle, setSelectedStyle] = useState<PostcardStyle>('classic');
   const { width: screenWidth } = useWindowDimensions();
 
   if (!config) return null;
@@ -45,7 +56,7 @@ export default function PostcardScreen() {
         ) + 1;
       const dateLabel = format(new Date(dateStr + 'T12:00:00'), 'MMMM d, yyyy');
 
-      const html = buildPostcardHtml(dayLog, chapterNum, dateLabel, travelers, customCategories);
+      const html = buildPostcardHtml(dayLog, chapterNum, dateLabel, travelers, selectedStyle, customCategories);
       const { uri } = await Print.printToFileAsync({ html, width: 1080, height: 1920 });
       await Sharing.shareAsync(uri, { mimeType: 'application/pdf', UTI: 'com.adobe.pdf' });
     } catch (err: any) {
@@ -63,7 +74,7 @@ export default function PostcardScreen() {
         (new Date(dateStr).getTime() - start) / (1000 * 60 * 60 * 24)
       ) + 1;
     const dateLabel = format(new Date(dateStr + 'T12:00:00'), 'MMMM d, yyyy');
-    return buildPostcardPreviewHtml(dayLog, chapterNum, dateLabel, travelers, previewWidth, customCategories);
+    return buildPostcardPreviewHtml(dayLog, chapterNum, dateLabel, travelers, previewWidth, selectedStyle, customCategories);
   };
 
   return (
@@ -75,7 +86,7 @@ export default function PostcardScreen() {
           <View style={styles.header}>
             <Text style={styles.title}>📬 Postcards</Text>
             <Text style={styles.subtitle}>
-              Tap a day to preview, then share
+              Tap a day, pick a style, then share
             </Text>
           </View>
         }
@@ -88,7 +99,14 @@ export default function PostcardScreen() {
             <View>
               <TouchableOpacity
                 style={[styles.dayRow, isSelected && styles.dayRowSelected]}
-                onPress={() => setSelectedDate(isSelected ? null : dateStr)}
+                onPress={() => {
+                  if (isSelected) {
+                    setSelectedDate(null);
+                  } else {
+                    setSelectedDate(dateStr);
+                    setSelectedStyle(suggestStyle(dayLog));
+                  }
+                }}
                 activeOpacity={0.7}
               >
                 <View>
@@ -106,6 +124,34 @@ export default function PostcardScreen() {
 
               {isSelected && (
                 <View style={styles.previewContainer}>
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={styles.stylePickerContent}
+                    style={styles.stylePicker}
+                  >
+                    {STYLE_OPTIONS.map((opt) => (
+                      <TouchableOpacity
+                        key={opt.id}
+                        style={[
+                          styles.styleCard,
+                          selectedStyle === opt.id && styles.styleCardActive,
+                        ]}
+                        onPress={() => setSelectedStyle(opt.id)}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={styles.styleIcon}>{opt.icon}</Text>
+                        <Text
+                          style={[
+                            styles.styleLabel,
+                            selectedStyle === opt.id && styles.styleLabelActive,
+                          ]}
+                        >
+                          {opt.label}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
                   <View
                     style={[
                       styles.previewWebView,
@@ -113,6 +159,7 @@ export default function PostcardScreen() {
                     ]}
                   >
                     <WebView
+                      key={`${dateStr}-${selectedStyle}`}
                       source={{ html: getPreviewHtml(dateStr) }}
                       style={{ width: previewWidth, height: previewHeight }}
                       scrollEnabled={false}
@@ -184,6 +231,42 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 8,
     alignItems: 'center',
+  },
+  stylePicker: {
+    marginBottom: 12,
+    maxHeight: 68,
+    flexGrow: 0,
+  },
+  stylePickerContent: {
+    gap: 8,
+    paddingHorizontal: 4,
+  },
+  styleCard: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: COLORS.border,
+    backgroundColor: COLORS.background,
+    minWidth: 76,
+  },
+  styleCardActive: {
+    borderColor: COLORS.primary,
+    backgroundColor: '#E8F0F4',
+  },
+  styleIcon: {
+    fontSize: 22,
+    marginBottom: 2,
+  },
+  styleLabel: {
+    fontFamily: 'Nunito_700Bold',
+    fontSize: 12,
+    color: COLORS.textLight,
+  },
+  styleLabelActive: {
+    color: COLORS.primary,
   },
   previewWebView: {
     borderRadius: 10,

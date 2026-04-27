@@ -101,3 +101,5 @@ export interface EkiStamp {
   line?: string;
   notes?: string;
 }
+
+export type PostcardStyle = 'classic' | 'collage' | 'timeline' | 'foodie' | 'explorer';
